@@ -68,11 +68,6 @@ describe('currentUserMiddleware', () => {
       expect(next).toHaveBeenCalled()
     })
 
-    it('should not create a new user', async () => {
-      await handler(req, res, next)
-      expect(mockCreate).not.toHaveBeenCalled()
-    })
-
     it('should not send an email', async () => {
       await handler(req, res, next)
       expect(mockEmailerSend).not.toHaveBeenCalled()

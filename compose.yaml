@@ -19,7 +19,8 @@ services:
       ADMIN_TOKEN: ${ADMIN_TOKEN}
       HONEY_BADGER: ${HONEY_BADGER}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   postgres:
     image: postgres:16-alpine
@@ -32,6 +33,11 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: trading_cards
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U admin -d trading_cards']
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   postgres-seed:
     build: ./postgres-seed

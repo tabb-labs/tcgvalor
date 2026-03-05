@@ -65,11 +65,13 @@ describe('e2e', () => {
     cy.get('#ExpansionTitle').should('have.text', 'Scarlet & Violet - Temporal Forces Expansion')
 
     // Add another Card
-    cy.get('#CardListItem-1').contains('Torterra ex')
-    cy.get('#CardListItem-1').contains('Owned: 0')
-    cy.get('#CardListItem-1').contains('Add').click()
-
-    cy.get('#CardListItem-1').contains('Owned: 1')
+    cy.contains('h2', 'Torterra ex')
+      .closest('[id^="CardListItem-"]')
+      .within(() => {
+        cy.contains('Owned: 0')
+        cy.contains('Add').click()
+        cy.contains('Owned: 1')
+      })
 
     // Verify amounts in collection
     cy.get('#NavCollection').click()
