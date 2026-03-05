@@ -4,16 +4,16 @@
   "description": "",
   "main": "index.js",
   "engines": {
-    "node": ">=20.0.0 <21.0.0"
+    "node": ">=20.6.0 <21.0.0"
   },
   "repository": {
     "type": "git",
     "url": "git@github.com:tabb-labs/tcgvalor.git"
   },
   "scripts": {
-    "dev": "concurrently \"webpack --mode development --watch\" \"node --watch dist/server.js\"",
+    "dev": "concurrently \"webpack --mode development --watch\" \"node --env-file=.env --watch dist/server.js\"",
     "build": "webpack --mode $MODE",
-    "start": "node dist/server.js",
+    "start": "node --env-file=.env dist/server.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "check": "prettier --ignore-path .gitignore --check . && eslint .",
