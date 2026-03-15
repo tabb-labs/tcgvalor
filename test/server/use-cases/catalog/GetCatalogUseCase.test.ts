@@ -88,7 +88,7 @@ describe('Get Catalog UseCase', () => {
         name: 'name',
         imageUrlPreview: 'preview',
         imageUrlShow: 'show',
-        owned: 0,
+        userCards: [],
         medianMarketValueCents: 1534,
         listingCount: 20,
       }
@@ -118,11 +118,11 @@ describe('Get Catalog UseCase', () => {
       const result = await getCatalogUseCase.call(BASE_SET_EXPANSION_ID, USER_ID)
       expect(userCardRepo_FAKE.FIND_BY_EXPANSION).toHaveBeenCalledWith(USER_ID, BASE_SET_EXPANSION_ID)
       expect(result.value.cards.length).toEqual(5)
-      expect(result.value.cards[0].owned).toEqual(0)
-      expect(result.value.cards[1].owned).toEqual(3)
-      expect(result.value.cards[2].owned).toEqual(2)
-      expect(result.value.cards[3].owned).toEqual(0)
-      expect(result.value.cards[4].owned).toEqual(1)
+      expect(result.value.cards[0].userCards.length).toEqual(0)
+      expect(result.value.cards[1].userCards.length).toEqual(3)
+      expect(result.value.cards[2].userCards.length).toEqual(2)
+      expect(result.value.cards[3].userCards.length).toEqual(0)
+      expect(result.value.cards[4].userCards.length).toEqual(1)
     })
   })
 })

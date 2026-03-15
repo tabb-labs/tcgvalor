@@ -85,13 +85,12 @@ const CardItem = ({ cardDto, id, isEditable = true, refreshCards = () => {} }: C
           </PriceWell>
 
           <>
-            {showOwnedCount && <h3>Owned: {cardDto.owned}</h3>}
+            {showOwnedCount && <h3>Owned: {cardDto.userCards.length}</h3>}
             {showActions && (
               <Actions>
                 <AddCardButton cardDto={cardDto} refreshCards={refreshCards} />
                 <RemoveCardButton
-                  blueprintId={cardDto.blueprintId}
-                  cardsOwned={cardDto.owned}
+                  userCardIds={cardDto.userCards.map((c) => c.id)}
                   refreshCards={refreshCards}
                 />
               </Actions>

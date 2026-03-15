@@ -6,7 +6,7 @@ export const CARD_DTO: CardDto = {
   name: '',
   imageUrlPreview: '',
   imageUrlShow: '',
-  owned: 0,
+  userCards: [],
   medianMarketValueCents: -1,
   listingCount: 25,
 }

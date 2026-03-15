@@ -38,7 +38,7 @@ describe('Collection', () => {
     expect(cards[0].name).toEqual('anyName')
     expect(cards[0].imageUrlPreview).toEqual('anyPreviewUrl')
     expect(cards[0].imageUrlShow).toEqual('anyShowUrl')
-    expect(cards[0].owned).toEqual(1)
+    expect(cards[0].userCards.length).toEqual(1)
     expect(cards[0].medianMarketValueCents).toEqual(MEDIAN_CENTS)
     expect(cards[0].listingCount).toEqual(25)
   })
@@ -66,9 +66,9 @@ describe('Collection', () => {
     const cards = new Collection(entries, BLUEPRINT_VALUES).cards()
 
     expect(cards.length).toEqual(3)
-    expect(cards[0].owned).toEqual(4)
-    expect(cards[1].owned).toEqual(2)
-    expect(cards[2].owned).toEqual(1)
+    expect(cards[0].userCards.length).toEqual(4)
+    expect(cards[1].userCards.length).toEqual(2)
+    expect(cards[2].userCards.length).toEqual(1)
   })
 
   it('should total up blueprint values for my cards', () => {

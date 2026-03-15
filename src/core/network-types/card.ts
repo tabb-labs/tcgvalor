@@ -4,7 +4,7 @@ export type CardDto = {
   name: string
   imageUrlPreview: string
   imageUrlShow: string
-  owned: number
+  userCards: { id: number; condition: string }[]
   medianMarketValueCents: number
   listingCount: number
 }

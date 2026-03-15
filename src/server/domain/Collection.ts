@@ -35,11 +35,11 @@ class Collection implements ICollection {
       const blueprintLink = card.cardBlueprint.platformLinks.find((l) => l.platform === 'CARD_TRADER')
       const blueprintId = Number(blueprintLink?.externalId ?? -1)
 
-      const owned = stack.filter(blueprintId).length
-      cardsInCollection += owned
+      const userCards = stack.filter(blueprintId).map((c) => ({ id: c.id, condition: c.condition }))
+      cardsInCollection += userCards.length
 
       let blueprintValue = blueprintValues.get(`${blueprintId}`)
-      if (blueprintValue) this.addToTotal(totalValue, blueprintValue, owned)
+      if (blueprintValue) this.addToTotal(totalValue, blueprintValue, userCards.length)
       if (!blueprintValue) blueprintValue = this.getMissingBlueprintValue()
 
       const cardDto: CardDto = {
@@ -48,7 +48,7 @@ class Collection implements ICollection {
         name: card.cardBlueprint.name,
         imageUrlPreview: card.cardBlueprint.imagePreviewUrl,
         imageUrlShow: card.cardBlueprint.imageShowUrl,
-        owned,
+        userCards,
         medianMarketValueCents: blueprintValue.medianCents,
         listingCount: blueprintValue.listingCount,
       }

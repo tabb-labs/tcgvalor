@@ -28,7 +28,7 @@ export const AddUserCardBodySchema = z.object({
 export type AddUserCardBody = z.infer<typeof AddUserCardBodySchema>
 
 export const RemoveUserCardBodySchema = z.object({
-  blueprintId: z.number(),
+  userCardId: z.number(),
 })
 
 export type RemoveUserCardBody = z.infer<typeof RemoveUserCardBodySchema>
