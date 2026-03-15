@@ -6,6 +6,7 @@ import Store from '../StoreRegistry'
 import ExpansionPokemonRepo from '../repository/ExpansionPokemonRepo'
 import CardBlueprintPokemonRepo from '../repository/CardBlueprintPokemonRepo'
 import PokemonCardFactory from '../domain/PokemonCardFactory'
+import PokemonExpansionFactory from '../domain/PokemonExpansionFactory'
 import { asyncHandler } from '../http/asyncHandler'
 
 const CatalogController = Router()
@@ -23,8 +24,10 @@ CatalogController.get(
       return
     }
 
-    const pokemonCardFactory = new PokemonCardFactory(new CardBlueprintPokemonRepo(), new CardTraderAdaptor())
-    const getCatalogUseCase = new GetCatalogUseCase(new UserCardRepo(), new ExpansionPokemonRepo(), pokemonCardFactory)
+    const cardTraderAdaptor = new CardTraderAdaptor()
+    const pokemonCardFactory = new PokemonCardFactory(new CardBlueprintPokemonRepo(), cardTraderAdaptor)
+    const pokemonExpansionFactory = new PokemonExpansionFactory(new ExpansionPokemonRepo(), cardTraderAdaptor)
+    const getCatalogUseCase = new GetCatalogUseCase(new UserCardRepo(), pokemonExpansionFactory, pokemonCardFactory)
 
     const result = await getCatalogUseCase.call(expansionId, Store.blueprintValues.getState(), req.currentUser?.id)
     if (result.isSuccess()) {

@@ -1,8 +1,8 @@
 import { CardDto } from '@core/network-types/card'
 import GetCatalogUseCase from '../../../../src/server/use-cases/catalog/GetCatalogUseCase'
 import { BlueprintValue } from '../../../../src/server/types/BlueprintValue'
-import { EXPANSION_DTO_1 } from '../../../core/__MOCKS__/catalog.mock'
-import ExpansionPokemonRepo_FAKE from '../../__FAKES__/ExpansionPokemonRepo.fake'
+import PokemonExpansionFactory_FAKE from '../../__FAKES__/PokemonExpansionFactory.fake'
+import { makePokemonExpansionMock } from '../../__MOCKS__/pokemonExpansion.mock'
 import UserCardRepo_FAKE from '../../__FAKES__/UserCardRepo.fake'
 import PokemonCardFactory_FAKE from '../../__FAKES__/PokemonCardFactory.fake'
 import { BLUEPRINT_VALUE_MOCK } from '../../__MOCKS__/blueprintValue.mock'
@@ -12,7 +12,7 @@ import { makeUserCardWithBlueprintMock } from '../../__MOCKS__/userCardWithBluep
 describe('Get Catalog UseCase', () => {
   let getCatalogUseCase: GetCatalogUseCase
   let userCardRepo_FAKE: UserCardRepo_FAKE
-  let expansionPokemonRepo_FAKE: ExpansionPokemonRepo_FAKE
+  let pokemonExpansionFactory_FAKE: PokemonExpansionFactory_FAKE
   let pokemonCardFactory_FAKE: PokemonCardFactory_FAKE
 
   const BASE_SET_EXPANSION_ID = 1472
@@ -22,19 +22,19 @@ describe('Get Catalog UseCase', () => {
 
   beforeEach(() => {
     userCardRepo_FAKE = new UserCardRepo_FAKE()
-    expansionPokemonRepo_FAKE = new ExpansionPokemonRepo_FAKE()
+    pokemonExpansionFactory_FAKE = new PokemonExpansionFactory_FAKE()
     pokemonCardFactory_FAKE = new PokemonCardFactory_FAKE()
-    getCatalogUseCase = new GetCatalogUseCase(userCardRepo_FAKE, expansionPokemonRepo_FAKE, pokemonCardFactory_FAKE)
+    getCatalogUseCase = new GetCatalogUseCase(userCardRepo_FAKE, pokemonExpansionFactory_FAKE, pokemonCardFactory_FAKE)
 
     pokemonCardFactory_FAKE.FROM_POSTGRES.mockResolvedValue([])
     pokemonCardFactory_FAKE.FROM_CARD_TRADER.mockResolvedValue([])
     userCardRepo_FAKE.FIND_BY_EXPANSION.mockResolvedValue([])
-    expansionPokemonRepo_FAKE.FIND.mockResolvedValue(EXPANSION_DTO_1)
+    pokemonExpansionFactory_FAKE.FROM_POSTGRES.mockResolvedValue(makePokemonExpansionMock())
   })
 
   describe('Details', () => {
     it('should return null when expansion id does not exist in expansion store', async () => {
-      expansionPokemonRepo_FAKE.FIND.mockResolvedValue(null)
+      pokemonExpansionFactory_FAKE.FROM_POSTGRES.mockResolvedValue(null)
       const result = await getCatalogUseCase.call(1, new Map<string, BlueprintValue>(), USER_ID)
       expect(result.value.details).toBeNull()
     })
