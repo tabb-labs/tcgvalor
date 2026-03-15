@@ -8,6 +8,8 @@ type MakePokemonCardMockArgs = {
   pokemonRarity?: string
   imageUrlPreview?: string
   imageUrlShow?: string
+  medianMarketValueCents?: number
+  listingCount?: number
 }
 
 export const makePokemonCardMock = ({
@@ -18,6 +20,8 @@ export const makePokemonCardMock = ({
   pokemonRarity = 'Common',
   imageUrlPreview = 'image url preview',
   imageUrlShow = 'image url show',
+  medianMarketValueCents = -1,
+  listingCount = -1,
 }: MakePokemonCardMockArgs = {}): PokemonCard =>
   new PokemonCard({
     cardTraderBlueprintId: blueprintId,
@@ -27,4 +31,6 @@ export const makePokemonCardMock = ({
     pokemonRarity,
     imageUrlPreview,
     imageUrlShow,
+    medianMarketValueCents,
+    listingCount,
   })

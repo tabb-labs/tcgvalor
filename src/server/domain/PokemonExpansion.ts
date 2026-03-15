@@ -1,4 +1,5 @@
 import { ExpansionDetailsDto, ExpansionPriceDetailsDto } from '@core/network-types/catalog'
+import PokemonCard from './PokemonCard'
 
 class PokemonExpansion {
   readonly cardTraderExpansionId: number
@@ -36,7 +37,7 @@ class PokemonExpansion {
     this.bulbapediaUrl = data.bulbapediaUrl
   }
 
-  toExpansionDetailsDto = (priceDetails: ExpansionPriceDetailsDto): ExpansionDetailsDto => ({
+  toExpansionDetailsDto = (cards: PokemonCard[]): ExpansionDetailsDto => ({
     name: this.name,
     expansionNumber: this.expansionNumberInSeries,
     series: this.series,
@@ -50,8 +51,20 @@ class PokemonExpansion {
     logoUrl: this.logoUrl,
     symbolUrl: this.symbolUrl,
     bulbapediaUrl: this.bulbapediaUrl,
-    priceDetails,
+    priceDetails: this.buildPriceDetails(cards),
   })
+
+  private buildPriceDetails = (cards: PokemonCard[]): ExpansionPriceDetailsDto =>
+    cards.reduce(
+      (acc, { medianMarketValueCents: v }) => {
+        if (v >= 1 && v <= 49_99) acc.zeroToFifty++
+        else if (v >= 50_00 && v <= 99_99) acc.fiftyToOneHundred++
+        else if (v >= 100_00 && v <= 199_99) acc.oneHundredTwoHundred++
+        else if (v >= 200_00) acc.twoHundredPlus++
+        return acc
+      },
+      { zeroToFifty: 0, fiftyToOneHundred: 0, oneHundredTwoHundred: 0, twoHundredPlus: 0 }
+    )
 }
 
 export default PokemonExpansion

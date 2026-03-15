@@ -1,7 +1,5 @@
-import { CatalogDto, ExpansionPriceDetailsDto } from '@core/network-types/catalog'
-import { CardDto } from '@core/network-types/card'
+import { CatalogDto } from '@core/network-types/catalog'
 import { IUserCardRepo } from '../../repository/UserCardRepo'
-import { BlueprintValue } from '../../types/BlueprintValue'
 import { IPokemonExpansionFactory } from '@domain/PokemonExpansionFactory'
 import { IPokemonCardFactory } from '@domain/PokemonCardFactory'
 import UserCardStack from '@domain/UserCardStack'
@@ -22,11 +20,7 @@ class GetCatalogUseCase {
     this.pokemonCardFactory = pokemonCardFactory
   }
 
-  call = async (
-    cardTraderExpansionId: number,
-    blueprintValues: Map<string, BlueprintValue>,
-    userId?: number
-  ): Promise<Result<CatalogDto>> => {
+  call = async (cardTraderExpansionId: number, userId?: number): Promise<Result<CatalogDto>> => {
     const [pokemonCards, expansion] = await Promise.all([
       this.pokemonCardFactory.makeList(cardTraderExpansionId),
       this.pokemonExpansionFactory.make(cardTraderExpansionId),
@@ -39,23 +33,10 @@ class GetCatalogUseCase {
       userCardStack = new UserCardStack(userCards)
     }
 
-    const cards = pokemonCards.map((c) => c.toCardDto(blueprintValues, userCardStack))
-    const details = expansion ? expansion.toExpansionDetailsDto(this.buildExpansionPriceDetails(cards)) : null
+    const cards = pokemonCards.map((c) => c.toCardDto(userCardStack))
+    const details = expansion ? expansion.toExpansionDetailsDto(pokemonCards) : null
 
     return Result.success({ details, cards })
-  }
-
-  private buildExpansionPriceDetails = (cards: CardDto[]): ExpansionPriceDetailsDto => {
-    return cards.reduce(
-      (acc, { medianMarketValueCents: v }) => {
-        if (v >= 1 && v <= 49_99) acc.zeroToFifty++
-        else if (v >= 50_00 && v <= 99_99) acc.fiftyToOneHundred++
-        else if (v >= 100_00 && v <= 199_99) acc.oneHundredTwoHundred++
-        else if (v >= 200_00) acc.twoHundredPlus++
-        return acc
-      },
-      { zeroToFifty: 0, fiftyToOneHundred: 0, oneHundredTwoHundred: 0, twoHundredPlus: 0 }
-    )
   }
 }
 

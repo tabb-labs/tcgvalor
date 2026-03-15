@@ -1,5 +1,6 @@
 import { ICardTraderAdaptor } from '../clients/CardTrader/CardTraderAdaptor'
 import { ICardBlueprintPokemonRepo } from '../repository/CardBlueprintPokemonRepo'
+import { BlueprintValue } from '../types/BlueprintValue'
 import PokemonCard from './PokemonCard'
 
 export interface IPokemonCardFactory {
@@ -9,17 +10,23 @@ export interface IPokemonCardFactory {
 class PokemonCardFactory implements IPokemonCardFactory {
   private readonly cardBlueprintPokemonRepo: ICardBlueprintPokemonRepo
   private readonly cardTraderAdaptor: ICardTraderAdaptor
+  private readonly blueprintValues: Map<string, BlueprintValue>
 
-  constructor(cardBlueprintPokemonRepo: ICardBlueprintPokemonRepo, cardTraderAdaptor: ICardTraderAdaptor) {
+  constructor(
+    cardBlueprintPokemonRepo: ICardBlueprintPokemonRepo,
+    cardTraderAdaptor: ICardTraderAdaptor,
+    blueprintValues: Map<string, BlueprintValue>
+  ) {
     this.cardBlueprintPokemonRepo = cardBlueprintPokemonRepo
     this.cardTraderAdaptor = cardTraderAdaptor
+    this.blueprintValues = blueprintValues
   }
 
   makeList = async (cardTraderExpansionId: number): Promise<PokemonCard[]> => {
     const postgresCards = await this.fromPostgres(cardTraderExpansionId)
     if (postgresCards.length > 0) return postgresCards
 
-    return await this.fromCardTrader(cardTraderExpansionId)
+    return this.fromCardTrader(cardTraderExpansionId)
   }
 
   private fromPostgres = async (cardTraderExpansionId: number): Promise<PokemonCard[]> => {
@@ -27,6 +34,7 @@ class PokemonCardFactory implements IPokemonCardFactory {
     return blueprints.map((b) => {
       const link = b.platformLinks.find((l) => l.platform === 'CARD_TRADER')
       if (!link) throw new Error(`No CARD_TRADER link for blueprint ${b.id}`)
+      const blueprintValue = this.blueprintValues.get(link.externalId)
       return new PokemonCard({
         cardTraderBlueprintId: Number(link.externalId),
         cardTraderExpansionId,
@@ -35,24 +43,28 @@ class PokemonCardFactory implements IPokemonCardFactory {
         pokemonRarity: b.pokemonCardBlueprint?.rarity ?? '',
         imageUrlPreview: b.imagePreviewUrl,
         imageUrlShow: b.imageShowUrl,
+        medianMarketValueCents: blueprintValue?.medianCents ?? -1,
+        listingCount: blueprintValue?.listingCount ?? -1,
       })
     })
   }
 
   private fromCardTrader = async (cardTraderExpansionId: number): Promise<PokemonCard[]> => {
     const blueprints = await this.cardTraderAdaptor.getPokemonBlueprints(cardTraderExpansionId)
-    return blueprints.map(
-      (b) =>
-        new PokemonCard({
-          cardTraderBlueprintId: b.blueprintId,
-          cardTraderExpansionId: b.expansionId,
-          name: b.name,
-          collectorNumber: b.collectorNumber,
-          pokemonRarity: b.pokemonRarity,
-          imageUrlPreview: b.imageUrlPreview,
-          imageUrlShow: b.imageUrlShow,
-        })
-    )
+    return blueprints.map((b) => {
+      const blueprintValue = this.blueprintValues.get(`${b.blueprintId}`)
+      return new PokemonCard({
+        cardTraderBlueprintId: b.blueprintId,
+        cardTraderExpansionId: b.expansionId,
+        name: b.name,
+        collectorNumber: b.collectorNumber,
+        pokemonRarity: b.pokemonRarity,
+        imageUrlPreview: b.imageUrlPreview,
+        imageUrlShow: b.imageUrlShow,
+        medianMarketValueCents: blueprintValue?.medianCents ?? -1,
+        listingCount: blueprintValue?.listingCount ?? -1,
+      })
+    })
   }
 }
 

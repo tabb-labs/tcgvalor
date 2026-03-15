@@ -1,5 +1,4 @@
 import { CardDto } from '@core/network-types/card'
-import { BlueprintValue } from '../types/BlueprintValue'
 import UserCardStack from './UserCardStack'
 
 class PokemonCard {
@@ -10,6 +9,8 @@ class PokemonCard {
   readonly pokemonRarity: string
   readonly imageUrlPreview: string
   readonly imageUrlShow: string
+  readonly medianMarketValueCents: number
+  readonly listingCount: number
 
   constructor(data: {
     cardTraderBlueprintId: number
@@ -19,6 +20,8 @@ class PokemonCard {
     pokemonRarity: string
     imageUrlPreview: string
     imageUrlShow: string
+    medianMarketValueCents: number
+    listingCount: number
   }) {
     this.cardTraderBlueprintId = data.cardTraderBlueprintId
     this.cardTraderExpansionId = data.cardTraderExpansionId
@@ -27,21 +30,20 @@ class PokemonCard {
     this.pokemonRarity = data.pokemonRarity
     this.imageUrlPreview = data.imageUrlPreview
     this.imageUrlShow = data.imageUrlShow
+    this.medianMarketValueCents = data.medianMarketValueCents
+    this.listingCount = data.listingCount
   }
 
-  toCardDto = (blueprintValues: Map<string, BlueprintValue>, userCardStack?: UserCardStack): CardDto => {
-    const blueprintValue = blueprintValues.get(`${this.cardTraderBlueprintId}`)
-    return {
-      blueprintId: this.cardTraderBlueprintId,
-      expansionId: this.cardTraderExpansionId,
-      name: this.name,
-      imageUrlPreview: this.imageUrlPreview,
-      imageUrlShow: this.imageUrlShow,
-      owned: userCardStack?.filter(this.cardTraderBlueprintId).length ?? 0,
-      medianMarketValueCents: blueprintValue?.medianCents ?? -1,
-      listingCount: blueprintValue?.listingCount ?? -1,
-    }
-  }
+  toCardDto = (userCardStack?: UserCardStack): CardDto => ({
+    blueprintId: this.cardTraderBlueprintId,
+    expansionId: this.cardTraderExpansionId,
+    name: this.name,
+    imageUrlPreview: this.imageUrlPreview,
+    imageUrlShow: this.imageUrlShow,
+    owned: userCardStack?.filter(this.cardTraderBlueprintId).length ?? 0,
+    medianMarketValueCents: this.medianMarketValueCents,
+    listingCount: this.listingCount,
+  })
 }
 
 export default PokemonCard
