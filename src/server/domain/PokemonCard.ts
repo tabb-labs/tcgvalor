@@ -40,7 +40,8 @@ class PokemonCard {
     name: this.name,
     imageUrlPreview: this.imageUrlPreview,
     imageUrlShow: this.imageUrlShow,
-    userCards: userCardStack?.filter(this.cardTraderBlueprintId).map((c) => ({ id: c.id, condition: c.condition })) ?? [],
+    userCards:
+      userCardStack?.filter(this.cardTraderBlueprintId).map((c) => ({ id: c.id, condition: c.condition })) ?? [],
     medianMarketValueCents: this.medianMarketValueCents,
     listingCount: this.listingCount,
   })

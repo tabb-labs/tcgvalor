@@ -51,7 +51,6 @@ class UserCardRepo implements IUserCardRepo {
       }
     })
   }
-
 }
 
 export default UserCardRepo

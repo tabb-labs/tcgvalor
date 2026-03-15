@@ -89,10 +89,7 @@ const CardItem = ({ cardDto, id, isEditable = true, refreshCards = () => {} }: C
             {showActions && (
               <Actions>
                 <AddCardButton cardDto={cardDto} refreshCards={refreshCards} />
-                <RemoveCardButton
-                  userCardIds={cardDto.userCards.map((c) => c.id)}
-                  refreshCards={refreshCards}
-                />
+                <RemoveCardButton userCardIds={cardDto.userCards.map((c) => c.id)} refreshCards={refreshCards} />
               </Actions>
             )}
           </>
