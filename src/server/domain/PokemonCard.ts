@@ -1,5 +1,5 @@
 import { CardDto } from '@core/network-types/card'
-import UserCardStack from './UserCardStack'
+import { UserCardWithBlueprint } from '../repository/UserCardRepo'
 
 class PokemonCard {
   readonly cardTraderBlueprintId: number
@@ -34,14 +34,19 @@ class PokemonCard {
     this.listingCount = data.listingCount
   }
 
-  toCardDto = (userCardStack?: UserCardStack): CardDto => ({
+  toCardDto = (userCards: UserCardWithBlueprint[] = []): CardDto => ({
     blueprintId: this.cardTraderBlueprintId,
     expansionId: this.cardTraderExpansionId,
     name: this.name,
     imageUrlPreview: this.imageUrlPreview,
     imageUrlShow: this.imageUrlShow,
-    userCards:
-      userCardStack?.filter(this.cardTraderBlueprintId).map((c) => ({ id: c.id, condition: c.condition })) ?? [],
+    userCards: userCards
+      .filter((c) =>
+        c.cardBlueprint.platformLinks.some(
+          (l) => l.platform === 'CARD_TRADER' && Number(l.externalId) === this.cardTraderBlueprintId
+        )
+      )
+      .map((c) => ({ id: c.id, condition: c.condition })),
     medianMarketValueCents: this.medianMarketValueCents,
     listingCount: this.listingCount,
   })

@@ -2,7 +2,6 @@ import { CatalogDto } from '@core/network-types/catalog'
 import { IUserCardRepo } from '../../repository/UserCardRepo'
 import { IPokemonExpansionFactory } from '@domain/PokemonExpansionFactory'
 import { IPokemonCardFactory } from '@domain/PokemonCardFactory'
-import UserCardStack from '@domain/UserCardStack'
 import { Result } from '@use-cases/Result'
 
 class GetCatalogUseCase {
@@ -26,14 +25,9 @@ class GetCatalogUseCase {
       this.pokemonExpansionFactory.make(cardTraderExpansionId),
     ])
 
-    let userCardStack: UserCardStack | undefined
+    const userCards = userId ? await this.userCardRepo.listByExpansion(userId, cardTraderExpansionId) : []
 
-    if (userId) {
-      const userCards = await this.userCardRepo.listByExpansion(userId, cardTraderExpansionId)
-      userCardStack = new UserCardStack(userCards)
-    }
-
-    const cards = pokemonCards.map((c) => c.toCardDto(userCardStack))
+    const cards = pokemonCards.map((c) => c.toCardDto(userCards))
     const details = expansion ? expansion.toExpansionDetailsDto(pokemonCards) : null
 
     return Result.success({ details, cards })

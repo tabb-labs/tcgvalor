@@ -2,7 +2,6 @@ import { CardDto } from '@core/network-types/card'
 import { CollectionMetaDto } from '@core/network-types/collection'
 import { UserCardWithBlueprint } from '../repository/UserCardRepo'
 import { BlueprintValue } from '../types/BlueprintValue'
-import UserCardStack from './UserCardStack'
 
 type UserCardEntry = { card: UserCardWithBlueprint; expansionId: number }
 
@@ -25,7 +24,6 @@ class Collection implements ICollection {
   details = () => this.cardDetails
 
   private calculateValues = (entries: UserCardEntry[], blueprintValues: Map<string, BlueprintValue>) => {
-    const stack = new UserCardStack(entries.map((e) => e.card))
     const totalValue = this.getEmptyBlueprintValue()
     let cardsInCollection = 0
 
@@ -35,7 +33,9 @@ class Collection implements ICollection {
       const blueprintLink = card.cardBlueprint.platformLinks.find((l) => l.platform === 'CARD_TRADER')
       const blueprintId = Number(blueprintLink?.externalId ?? -1)
 
-      const userCards = stack.filter(blueprintId).map((c) => ({ id: c.id, condition: c.condition }))
+      const userCards = entries
+        .filter(({ card: c }) => c.cardBlueprintId === card.cardBlueprintId)
+        .map(({ card: c }) => ({ id: c.id, condition: c.condition }))
       cardsInCollection += userCards.length
 
       let blueprintValue = blueprintValues.get(`${blueprintId}`)
