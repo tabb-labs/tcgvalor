@@ -66,8 +66,8 @@ describe('Card Trader Client', () => {
       const id = 25
       const name = 'Any name'
       const version = '1/122'
-      const imageUrlPreview = '/uploads/blueprints/image/111148/preview_alakazam-rare-holo-1-102-base-set.jpg'
-      const imageUrlShow = '/uploads/blueprints/image/111148/show_alakazam-rare-holo-1-102-base-set.jpg'
+      const imageUrlPreview = `${CARD_TRADER_BASE_URL}/uploads/blueprints/image/111148/preview_alakazam-rare-holo-1-102-base-set.jpg`
+      const imageUrlShow = `${CARD_TRADER_BASE_URL}/uploads/blueprints/image/111148/show_alakazam-rare-holo-1-102-base-set.jpg`
       const blueprintDto: CardTraderBlueprintDto[] = [
         makeBlueprintDto({
           id,
@@ -80,11 +80,11 @@ describe('Card Trader Client', () => {
 
       GET_BLUEPRINTS.mockResolvedValue(blueprintDto)
       const result = await cardTraderClient.getPokemonBlueprints(3)
-      expect(result[0].blueprintId).toEqual(id)
+      expect(result[0].id).toEqual(id)
       expect(result[0].name).toEqual(name)
       expect(result[0].version).toEqual(version)
-      expect(result[0].imageUrlPreview).toEqual(`${CARD_TRADER_BASE_URL}${imageUrlPreview}`)
-      expect(result[0].imageUrlShow).toEqual(`${CARD_TRADER_BASE_URL}${imageUrlShow}`)
+      expect(result[0].image.preview.url).toEqual(imageUrlPreview)
+      expect(result[0].image.show.url).toEqual(imageUrlShow)
     })
 
     it('filters out none single pokemon items', async () => {

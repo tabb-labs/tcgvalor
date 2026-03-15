@@ -116,12 +116,12 @@ describe('Add Card Trader Card UseCase', () => {
 
     expect(cardBlueprintPokemonRepo_FAKE.CREATE).toHaveBeenCalledWith({
       expansionId: EXPANSION_ID,
-      cardTraderBlueprintId: targetBlueprint.blueprintId,
+      cardTraderBlueprintId: targetBlueprint.id,
       name: targetBlueprint.name,
-      collectorNumber: targetBlueprint.collectorNumber,
-      rarity: targetBlueprint.pokemonRarity,
-      imageShowUrl: targetBlueprint.imageUrlShow,
-      imagePreviewUrl: targetBlueprint.imageUrlPreview,
+      collectorNumber: targetBlueprint.fixedProperties.collectorNumber,
+      rarity: targetBlueprint.fixedProperties.pokemonRarity,
+      imageShowUrl: targetBlueprint.image.show.url,
+      imagePreviewUrl: targetBlueprint.image.preview.url,
     })
   })
 
@@ -147,7 +147,7 @@ describe('Add Card Trader Card UseCase', () => {
 
     expect(cardBlueprintPokemonRepo_FAKE.CREATE).toHaveBeenCalledTimes(2)
     expect(cardBlueprintPokemonRepo_FAKE.CREATE).toHaveBeenCalledWith(
-      expect.objectContaining({ cardTraderBlueprintId: otherBlueprint.blueprintId })
+      expect.objectContaining({ cardTraderBlueprintId: otherBlueprint.id })
     )
   })
 

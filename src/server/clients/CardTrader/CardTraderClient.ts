@@ -1,8 +1,7 @@
 import { ENV } from '../../env'
-import { CardBlueprint } from '../../types/CardBlueprint'
 import { CardExpansion } from '../../types/CardExpansion'
 import { CardValue } from '../../types/CardValue'
-import { tryToParseBlueprints } from './parseBlueprints'
+import { CardTraderBlueprintDto, tryToParseBlueprints } from './parseBlueprints'
 import { tryToParseExpansions } from './parseExpansions'
 import { tryToParseMarketplaceProducts } from './parseMarketplaceProducts'
 import { EXCLUDED_EXPANSION_IDS } from './excludedExpansionIds'
@@ -27,7 +26,7 @@ export const getMarketplaceProducts = (expansionId: number) =>
 
 export interface ICardTraderClient {
   getPokemonExpansions: () => Promise<CardExpansion[]>
-  getPokemonBlueprints: (expansionId: number) => Promise<CardBlueprint[]>
+  getPokemonBlueprints: (expansionId: number) => Promise<CardTraderBlueprintDto[]>
   getPokemonCardValues: (expansionId: number) => Promise<Map<string, CardValue[]>>
 }
 
@@ -39,20 +38,9 @@ class CardTraderClient implements ICardTraderClient {
       .map((e) => ({ expansionId: e.id, name: e.name }))
   }
 
-  getPokemonBlueprints = async (expansionId: number): Promise<CardBlueprint[]> => {
+  getPokemonBlueprints = async (expansionId: number): Promise<CardTraderBlueprintDto[]> => {
     const blueprints = await getBlueprints(expansionId)
-    return blueprints
-      .filter((b) => b.categoryId === CARD_TRADER.POKEMON_SINGLE_CARD_CATEGORY)
-      .map((b) => ({
-        blueprintId: b.id,
-        expansionId: b.expansionId,
-        name: b.name,
-        version: b.version || '',
-        collectorNumber: b.fixedProperties.collectorNumber,
-        pokemonRarity: b.fixedProperties.pokemonRarity,
-        imageUrlPreview: `${CARD_TRADER.CARD_TRADER_BASE_URL}${b.image.preview.url}`,
-        imageUrlShow: `${CARD_TRADER.CARD_TRADER_BASE_URL}${b.image.show.url}`,
-      }))
+    return blueprints.filter((b) => b.categoryId === CARD_TRADER.POKEMON_SINGLE_CARD_CATEGORY)
   }
 
   getPokemonCardValues = async (expansionId: number): Promise<Map<string, CardValue[]>> => {

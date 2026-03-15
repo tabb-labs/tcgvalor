@@ -2,7 +2,7 @@ import { CardCondition, PrismaClient } from '@prisma/client'
 import { ICardTraderClient } from '../../clients/CardTrader/CardTraderClient'
 import { IExpansionPokemonRepo } from '../../repository/ExpansionPokemonRepo'
 import { ICardBlueprintPokemonRepo } from '../../repository/CardBlueprintPokemonRepo'
-import { CardBlueprint } from '../../types/CardBlueprint'
+import { CardTraderBlueprintDto } from '../../clients/CardTrader/parseBlueprints'
 import Logger from '../../logger'
 import { Result } from '@use-cases/Result'
 
@@ -90,7 +90,7 @@ class AddCardTraderCardUseCase implements IAddCardTraderCardUseCase {
     if (existing) return existing.id
 
     const allBlueprints = await this.cardTraderClient.getPokemonBlueprints(cardTraderExpansionId)
-    const target = allBlueprints.find((b) => b.blueprintId === cardTraderBlueprintId)
+    const target = allBlueprints.find((b) => b.id === cardTraderBlueprintId)
 
     if (!target) {
       const err = new Error(`Blueprint ${cardTraderBlueprintId} not found in expansion ${cardTraderExpansionId}`)
@@ -100,12 +100,12 @@ class AddCardTraderCardUseCase implements IAddCardTraderCardUseCase {
 
     const cardBlueprintId = await this.cardBlueprintPokemonRepo.create({
       expansionId,
-      cardTraderBlueprintId: target.blueprintId,
+      cardTraderBlueprintId: target.id,
       name: target.name,
-      collectorNumber: target.collectorNumber,
-      rarity: target.pokemonRarity,
-      imageShowUrl: target.imageUrlShow,
-      imagePreviewUrl: target.imageUrlPreview,
+      collectorNumber: target.fixedProperties.collectorNumber,
+      rarity: target.fixedProperties.pokemonRarity,
+      imageShowUrl: target.image.show.url,
+      imagePreviewUrl: target.image.preview.url,
     })
 
     this.backfillRemainingBlueprints(expansionId, allBlueprints, cardTraderBlueprintId).catch((e) => {
@@ -117,23 +117,23 @@ class AddCardTraderCardUseCase implements IAddCardTraderCardUseCase {
 
   private backfillRemainingBlueprints = async (
     expansionId: number,
-    allBlueprints: CardBlueprint[],
+    allBlueprints: CardTraderBlueprintDto[],
     excludeBlueprintId: number
   ) => {
-    const remaining = allBlueprints.filter((b) => b.blueprintId !== excludeBlueprintId)
+    const remaining = allBlueprints.filter((b) => b.id !== excludeBlueprintId)
 
     for (const blueprint of remaining) {
-      const existing = await this.cardBlueprintPokemonRepo.find(blueprint.blueprintId)
+      const existing = await this.cardBlueprintPokemonRepo.find(blueprint.id)
       if (existing) continue
 
       await this.cardBlueprintPokemonRepo.create({
         expansionId,
-        cardTraderBlueprintId: blueprint.blueprintId,
+        cardTraderBlueprintId: blueprint.id,
         name: blueprint.name,
-        collectorNumber: blueprint.collectorNumber,
-        rarity: blueprint.pokemonRarity,
-        imageShowUrl: blueprint.imageUrlShow,
-        imagePreviewUrl: blueprint.imageUrlPreview,
+        collectorNumber: blueprint.fixedProperties.collectorNumber,
+        rarity: blueprint.fixedProperties.pokemonRarity,
+        imageShowUrl: blueprint.image.show.url,
+        imagePreviewUrl: blueprint.image.preview.url,
       })
     }
   }

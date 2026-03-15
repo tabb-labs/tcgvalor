@@ -1,4 +1,7 @@
+import { ENV } from '../../env'
 import { z } from 'zod'
+
+const CARD_TRADER = ENV.CARD_TRADER
 
 const CardTraderBlueprintSchema = z
   .object({
@@ -33,8 +36,10 @@ const CardTraderBlueprintSchema = z
       pokemonRarity: parsed.fixed_properties?.pokemon_rarity ?? '',
     },
     image: {
-      show: { url: parsed.image?.show?.url ?? '' },
-      preview: { url: parsed.image?.preview?.url ?? '' },
+      show: { url: parsed.image?.show?.url ? `${CARD_TRADER.CARD_TRADER_BASE_URL}${parsed.image.show.url}` : '' },
+      preview: {
+        url: parsed.image?.preview?.url ? `${CARD_TRADER.CARD_TRADER_BASE_URL}${parsed.image.preview.url}` : '',
+      },
     },
   }))
 

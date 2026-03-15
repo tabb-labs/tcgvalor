@@ -52,15 +52,15 @@ class PokemonCardFactory implements IPokemonCardFactory {
   private fromCardTrader = async (cardTraderExpansionId: number): Promise<PokemonCard[]> => {
     const blueprints = await this.cardTraderClient.getPokemonBlueprints(cardTraderExpansionId)
     return blueprints.map((b) => {
-      const blueprintValue = this.blueprintValues.get(`${b.blueprintId}`)
+      const blueprintValue = this.blueprintValues.get(`${b.id}`)
       return new PokemonCard({
-        cardTraderBlueprintId: b.blueprintId,
+        cardTraderBlueprintId: b.id,
         cardTraderExpansionId: b.expansionId,
         name: b.name,
-        collectorNumber: b.collectorNumber,
-        pokemonRarity: b.pokemonRarity,
-        imageUrlPreview: b.imageUrlPreview,
-        imageUrlShow: b.imageUrlShow,
+        collectorNumber: b.fixedProperties.collectorNumber,
+        pokemonRarity: b.fixedProperties.pokemonRarity,
+        imageUrlPreview: b.image.preview.url,
+        imageUrlShow: b.image.show.url,
         medianMarketValueCents: blueprintValue?.medianCents ?? -1,
         listingCount: blueprintValue?.listingCount ?? -1,
       })
