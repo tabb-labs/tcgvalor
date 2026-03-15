@@ -1,6 +1,6 @@
 import { CardCondition } from '@prisma/client'
 import AddCardTraderCardUseCase from '../../../../src/server/use-cases/collection/AddCardTraderCardUseCase'
-import CardTraderAdaptor_FAKE from '../../__FAKES__/CardTraderAdaptor.fake'
+import CardTraderClient_FAKE from '../../__FAKES__/CardTraderClient.fake'
 import ExpansionPokemonRepo_FAKE from '../../__FAKES__/ExpansionPokemonRepo.fake'
 import CardBlueprintPokemonRepo_FAKE from '../../__FAKES__/CardBlueprintPokemonRepo.fake'
 import { makePrismaClientMock } from '../../__MOCKS__/prismaClient.mock'
@@ -15,7 +15,7 @@ const mockPrisma = makePrismaClientMock({
 
 describe('Add Card Trader Card UseCase', () => {
   let useCase: AddCardTraderCardUseCase
-  let cardTraderAdaptor_FAKE: CardTraderAdaptor_FAKE
+  let cardTraderClient_FAKE: CardTraderClient_FAKE
   let expansionPokemonRepo_FAKE: ExpansionPokemonRepo_FAKE
   let cardBlueprintPokemonRepo_FAKE: CardBlueprintPokemonRepo_FAKE
 
@@ -28,12 +28,12 @@ describe('Add Card Trader Card UseCase', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    cardTraderAdaptor_FAKE = new CardTraderAdaptor_FAKE()
+    cardTraderClient_FAKE = new CardTraderClient_FAKE()
     expansionPokemonRepo_FAKE = new ExpansionPokemonRepo_FAKE()
     cardBlueprintPokemonRepo_FAKE = new CardBlueprintPokemonRepo_FAKE()
     useCase = new AddCardTraderCardUseCase(
       mockPrisma,
-      cardTraderAdaptor_FAKE,
+      cardTraderClient_FAKE,
       expansionPokemonRepo_FAKE,
       cardBlueprintPokemonRepo_FAKE
     )
@@ -70,10 +70,10 @@ describe('Add Card Trader Card UseCase', () => {
   it('should fetch and create expansion when it does not exist', async () => {
     expansionPokemonRepo_FAKE.FIND.mockResolvedValue(null)
     expansionPokemonRepo_FAKE.CREATE.mockResolvedValue(EXPANSION_ID)
-    cardTraderAdaptor_FAKE.GET_POKEMON_EXPANSIONS.mockResolvedValue([
+    cardTraderClient_FAKE.GET_POKEMON_EXPANSIONS.mockResolvedValue([
       { expansionId: CARD_TRADER_EXPANSION_ID, name: 'Base Set' },
     ])
-    cardTraderAdaptor_FAKE.GET_POKEMON_BLUEPRINTS.mockResolvedValue([
+    cardTraderClient_FAKE.GET_POKEMON_BLUEPRINTS.mockResolvedValue([
       makeCardBlueprintMock({ blueprintId: CARD_TRADER_BLUEPRINT_ID }),
     ])
     cardBlueprintPokemonRepo_FAKE.FIND.mockResolvedValue(null)
@@ -92,8 +92,8 @@ describe('Add Card Trader Card UseCase', () => {
   it('should use empty string for expansion name when not matched in card trader response', async () => {
     expansionPokemonRepo_FAKE.FIND.mockResolvedValue(null)
     expansionPokemonRepo_FAKE.CREATE.mockResolvedValue(EXPANSION_ID)
-    cardTraderAdaptor_FAKE.GET_POKEMON_EXPANSIONS.mockResolvedValue([])
-    cardTraderAdaptor_FAKE.GET_POKEMON_BLUEPRINTS.mockResolvedValue([
+    cardTraderClient_FAKE.GET_POKEMON_EXPANSIONS.mockResolvedValue([])
+    cardTraderClient_FAKE.GET_POKEMON_BLUEPRINTS.mockResolvedValue([
       makeCardBlueprintMock({ blueprintId: CARD_TRADER_BLUEPRINT_ID }),
     ])
     cardBlueprintPokemonRepo_FAKE.FIND.mockResolvedValue(null)
@@ -108,7 +108,7 @@ describe('Add Card Trader Card UseCase', () => {
     const targetBlueprint = makeCardBlueprintMock({ blueprintId: CARD_TRADER_BLUEPRINT_ID })
 
     expansionPokemonRepo_FAKE.FIND.mockResolvedValue({ ...EXPANSION_ENTITY_ORIGINAL, id: EXPANSION_ID })
-    cardTraderAdaptor_FAKE.GET_POKEMON_BLUEPRINTS.mockResolvedValue([targetBlueprint])
+    cardTraderClient_FAKE.GET_POKEMON_BLUEPRINTS.mockResolvedValue([targetBlueprint])
     cardBlueprintPokemonRepo_FAKE.FIND.mockResolvedValue(null)
     cardBlueprintPokemonRepo_FAKE.CREATE.mockResolvedValue(CARD_BLUEPRINT_ID)
 
@@ -138,7 +138,7 @@ describe('Add Card Trader Card UseCase', () => {
     const otherBlueprint = makeCardBlueprintMock({ blueprintId: 999 })
 
     expansionPokemonRepo_FAKE.FIND.mockResolvedValue({ ...EXPANSION_ENTITY_ORIGINAL, id: EXPANSION_ID })
-    cardTraderAdaptor_FAKE.GET_POKEMON_BLUEPRINTS.mockResolvedValue([targetBlueprint, otherBlueprint])
+    cardTraderClient_FAKE.GET_POKEMON_BLUEPRINTS.mockResolvedValue([targetBlueprint, otherBlueprint])
     cardBlueprintPokemonRepo_FAKE.FIND.mockResolvedValue(null)
     cardBlueprintPokemonRepo_FAKE.CREATE.mockResolvedValue(CARD_BLUEPRINT_ID)
 
@@ -156,7 +156,7 @@ describe('Add Card Trader Card UseCase', () => {
     const existingBlueprint = makeCardBlueprintMock({ blueprintId: 999 })
 
     expansionPokemonRepo_FAKE.FIND.mockResolvedValue({ ...EXPANSION_ENTITY_ORIGINAL, id: EXPANSION_ID })
-    cardTraderAdaptor_FAKE.GET_POKEMON_BLUEPRINTS.mockResolvedValue([targetBlueprint, existingBlueprint])
+    cardTraderClient_FAKE.GET_POKEMON_BLUEPRINTS.mockResolvedValue([targetBlueprint, existingBlueprint])
     cardBlueprintPokemonRepo_FAKE.FIND.mockResolvedValueOnce(null) // target doesn't exist
       .mockResolvedValue({ id: 999 }) // remaining blueprints already exist
     cardBlueprintPokemonRepo_FAKE.CREATE.mockResolvedValue(CARD_BLUEPRINT_ID)
@@ -170,7 +170,7 @@ describe('Add Card Trader Card UseCase', () => {
   it('should throw when requested blueprint is not found in card trader response', async () => {
     expansionPokemonRepo_FAKE.FIND.mockResolvedValue({ ...EXPANSION_ENTITY_ORIGINAL, id: EXPANSION_ID })
     cardBlueprintPokemonRepo_FAKE.FIND.mockResolvedValue(null)
-    cardTraderAdaptor_FAKE.GET_POKEMON_BLUEPRINTS.mockResolvedValue([makeCardBlueprintMock({ blueprintId: 999 })])
+    cardTraderClient_FAKE.GET_POKEMON_BLUEPRINTS.mockResolvedValue([makeCardBlueprintMock({ blueprintId: 999 })])
 
     await expect(useCase.call(USER_ID, CARD_TRADER_BLUEPRINT_ID, CARD_TRADER_EXPANSION_ID, CONDITION)).rejects.toThrow(
       `Blueprint ${CARD_TRADER_BLUEPRINT_ID} not found in expansion ${CARD_TRADER_EXPANSION_ID}`

@@ -4,7 +4,7 @@ import AddCardTraderCardUseCase from '../use-cases/collection/AddCardTraderCardU
 import UserCardRepo from '../repository/UserCardRepo'
 import ExpansionPokemonRepo from '../repository/ExpansionPokemonRepo'
 import CardBlueprintPokemonRepo from '../repository/CardBlueprintPokemonRepo'
-import CardTraderAdaptor from '../clients/CardTrader/CardTraderAdaptor'
+import CardTraderClient from '../clients/CardTrader/CardTraderClient'
 import GetCollectionUseCase from '../use-cases/collection/GetCollectionUseCase'
 import Store from '../StoreRegistry'
 import RemoveCardUseCase from '../use-cases/collection/RemoveCardUseCase'
@@ -57,7 +57,7 @@ CollectionController.post(
     }
     const addCardTraderCardUseCase = new AddCardTraderCardUseCase(
       prisma,
-      new CardTraderAdaptor(),
+      new CardTraderClient(),
       new ExpansionPokemonRepo(),
       new CardBlueprintPokemonRepo()
     )

@@ -1,5 +1,5 @@
 import { CardCondition, PrismaClient } from '@prisma/client'
-import { ICardTraderAdaptor } from '../../clients/CardTrader/CardTraderAdaptor'
+import { ICardTraderClient } from '../../clients/CardTrader/CardTraderClient'
 import { IExpansionPokemonRepo } from '../../repository/ExpansionPokemonRepo'
 import { ICardBlueprintPokemonRepo } from '../../repository/CardBlueprintPokemonRepo'
 import { CardBlueprint } from '../../types/CardBlueprint'
@@ -17,18 +17,18 @@ export interface IAddCardTraderCardUseCase {
 
 class AddCardTraderCardUseCase implements IAddCardTraderCardUseCase {
   private readonly prisma: PrismaClient
-  private readonly cardTraderAdaptor: ICardTraderAdaptor
+  private readonly cardTraderClient: ICardTraderClient
   private readonly expansionPokemonRepo: IExpansionPokemonRepo
   private readonly cardBlueprintPokemonRepo: ICardBlueprintPokemonRepo
 
   constructor(
     prisma: PrismaClient,
-    cardTraderAdaptor: ICardTraderAdaptor,
+    cardTraderClient: ICardTraderClient,
     expansionPokemonRepo: IExpansionPokemonRepo,
     cardBlueprintPokemonRepo: ICardBlueprintPokemonRepo
   ) {
     this.prisma = prisma
-    this.cardTraderAdaptor = cardTraderAdaptor
+    this.cardTraderClient = cardTraderClient
     this.expansionPokemonRepo = expansionPokemonRepo
     this.cardBlueprintPokemonRepo = cardBlueprintPokemonRepo
   }
@@ -76,7 +76,7 @@ class AddCardTraderCardUseCase implements IAddCardTraderCardUseCase {
   }
 
   private fetchExpansionName = async (cardTraderExpansionId: number): Promise<string> => {
-    const expansions = await this.cardTraderAdaptor.getPokemonExpansions()
+    const expansions = await this.cardTraderClient.getPokemonExpansions()
     const match = expansions.find((e) => e.expansionId === cardTraderExpansionId)
     return match?.name ?? ''
   }
@@ -89,7 +89,7 @@ class AddCardTraderCardUseCase implements IAddCardTraderCardUseCase {
     const existing = await this.cardBlueprintPokemonRepo.find(cardTraderBlueprintId)
     if (existing) return existing.id
 
-    const allBlueprints = await this.cardTraderAdaptor.getPokemonBlueprints(cardTraderExpansionId)
+    const allBlueprints = await this.cardTraderClient.getPokemonBlueprints(cardTraderExpansionId)
     const target = allBlueprints.find((b) => b.blueprintId === cardTraderBlueprintId)
 
     if (!target) {

@@ -1,4 +1,4 @@
-import { ICardTraderAdaptor } from '../clients/CardTrader/CardTraderAdaptor'
+import { ICardTraderClient } from '../clients/CardTrader/CardTraderClient'
 import { ICardBlueprintPokemonRepo } from '../repository/CardBlueprintPokemonRepo'
 import { BlueprintValue } from '../types/BlueprintValue'
 import PokemonCard from './PokemonCard'
@@ -9,16 +9,16 @@ export interface IPokemonCardFactory {
 
 class PokemonCardFactory implements IPokemonCardFactory {
   private readonly cardBlueprintPokemonRepo: ICardBlueprintPokemonRepo
-  private readonly cardTraderAdaptor: ICardTraderAdaptor
+  private readonly cardTraderClient: ICardTraderClient
   private readonly blueprintValues: Map<string, BlueprintValue>
 
   constructor(
     cardBlueprintPokemonRepo: ICardBlueprintPokemonRepo,
-    cardTraderAdaptor: ICardTraderAdaptor,
+    cardTraderClient: ICardTraderClient,
     blueprintValues: Map<string, BlueprintValue>
   ) {
     this.cardBlueprintPokemonRepo = cardBlueprintPokemonRepo
-    this.cardTraderAdaptor = cardTraderAdaptor
+    this.cardTraderClient = cardTraderClient
     this.blueprintValues = blueprintValues
   }
 
@@ -50,7 +50,7 @@ class PokemonCardFactory implements IPokemonCardFactory {
   }
 
   private fromCardTrader = async (cardTraderExpansionId: number): Promise<PokemonCard[]> => {
-    const blueprints = await this.cardTraderAdaptor.getPokemonBlueprints(cardTraderExpansionId)
+    const blueprints = await this.cardTraderClient.getPokemonBlueprints(cardTraderExpansionId)
     return blueprints.map((b) => {
       const blueprintValue = this.blueprintValues.get(`${b.blueprintId}`)
       return new PokemonCard({

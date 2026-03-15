@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import GetCatalogUseCase from '../use-cases/catalog/GetCatalogUseCase'
 import UserCardRepo from '../repository/UserCardRepo'
-import CardTraderAdaptor from '../clients/CardTrader/CardTraderAdaptor'
+import CardTraderClient from '../clients/CardTrader/CardTraderClient'
 import Store from '../StoreRegistry'
 import ExpansionPokemonRepo from '../repository/ExpansionPokemonRepo'
 import CardBlueprintPokemonRepo from '../repository/CardBlueprintPokemonRepo'
@@ -26,7 +26,7 @@ CatalogController.get(
 
     const pokemonCardFactory = new PokemonCardFactory(
       new CardBlueprintPokemonRepo(),
-      new CardTraderAdaptor(),
+      new CardTraderClient(),
       Store.blueprintValues.getState()
     )
     const pokemonExpansionFactory = new PokemonExpansionFactory(new ExpansionPokemonRepo())
