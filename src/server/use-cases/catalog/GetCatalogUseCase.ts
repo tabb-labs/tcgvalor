@@ -27,13 +27,10 @@ class GetCatalogUseCase {
     blueprintValues: Map<string, BlueprintValue>,
     userId?: number
   ): Promise<Result<CatalogDto>> => {
-    const [postgresCards, expansion] = await Promise.all([
-      this.pokemonCardFactory.fromPostgres(cardTraderExpansionId),
-      this.pokemonExpansionFactory.fromPostgres(cardTraderExpansionId),
+    const [pokemonCards, expansion] = await Promise.all([
+      this.pokemonCardFactory.makeList(cardTraderExpansionId),
+      this.pokemonExpansionFactory.make(cardTraderExpansionId),
     ])
-
-    const pokemonCards =
-      postgresCards.length > 0 ? postgresCards : await this.pokemonCardFactory.fromCardTrader(cardTraderExpansionId)
 
     let userCardStack: UserCardStack | undefined
 

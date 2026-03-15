@@ -26,15 +26,14 @@ describe('Get Catalog UseCase', () => {
     pokemonCardFactory_FAKE = new PokemonCardFactory_FAKE()
     getCatalogUseCase = new GetCatalogUseCase(userCardRepo_FAKE, pokemonExpansionFactory_FAKE, pokemonCardFactory_FAKE)
 
-    pokemonCardFactory_FAKE.FROM_POSTGRES.mockResolvedValue([])
-    pokemonCardFactory_FAKE.FROM_CARD_TRADER.mockResolvedValue([])
+    pokemonCardFactory_FAKE.MAKE_LIST.mockResolvedValue([])
     userCardRepo_FAKE.FIND_BY_EXPANSION.mockResolvedValue([])
-    pokemonExpansionFactory_FAKE.FROM_POSTGRES.mockResolvedValue(makePokemonExpansionMock())
+    pokemonExpansionFactory_FAKE.MAKE.mockResolvedValue(makePokemonExpansionMock())
   })
 
   describe('Details', () => {
-    it('should return null when expansion id does not exist in expansion store', async () => {
-      pokemonExpansionFactory_FAKE.FROM_POSTGRES.mockResolvedValue(null)
+    it('should return null when expansion does not exist in postgres', async () => {
+      pokemonExpansionFactory_FAKE.MAKE.mockResolvedValue(null)
       const result = await getCatalogUseCase.call(1, new Map<string, BlueprintValue>(), USER_ID)
       expect(result.value.details).toBeNull()
     })
@@ -48,7 +47,7 @@ describe('Get Catalog UseCase', () => {
       })
     })
     it('should return price count for median price details', async () => {
-      pokemonCardFactory_FAKE.FROM_CARD_TRADER.mockResolvedValue([
+      pokemonCardFactory_FAKE.MAKE_LIST.mockResolvedValue([
         makePokemonCardMock({ blueprintId: 1 }),
         makePokemonCardMock({ blueprintId: 2 }),
         makePokemonCardMock({ blueprintId: 3 }),
@@ -86,13 +85,12 @@ describe('Get Catalog UseCase', () => {
   })
 
   describe('Cards', () => {
-    it('should return an empty array when no blueprints and user is not logged in', async () => {
+    it('should return an empty array when no cards exist', async () => {
       const result = await getCatalogUseCase.call(BASE_SET_EXPANSION_ID, BLUEPRINT_VALUES)
-      expect(pokemonCardFactory_FAKE.FROM_POSTGRES).toHaveBeenCalledWith(BASE_SET_EXPANSION_ID)
-      expect(pokemonCardFactory_FAKE.FROM_CARD_TRADER).toHaveBeenCalledWith(BASE_SET_EXPANSION_ID)
+      expect(pokemonCardFactory_FAKE.MAKE_LIST).toHaveBeenCalledWith(BASE_SET_EXPANSION_ID)
       expect(result.value.cards).toEqual([])
     })
-    it('should return blueprints from card trader when user is not logged in', async () => {
+    it('should return cards with blueprint values', async () => {
       const card = makePokemonCardMock({
         blueprintId: 1,
         expansionId: 2,
@@ -100,7 +98,7 @@ describe('Get Catalog UseCase', () => {
         imageUrlPreview: 'preview',
         imageUrlShow: 'show',
       })
-      pokemonCardFactory_FAKE.FROM_CARD_TRADER.mockResolvedValue([card])
+      pokemonCardFactory_FAKE.MAKE_LIST.mockResolvedValue([card])
       const result = await getCatalogUseCase.call(BASE_SET_EXPANSION_ID, BLUEPRINT_VALUES)
       const expectedResult: CardDto = {
         blueprintId: 1,
@@ -114,21 +112,13 @@ describe('Get Catalog UseCase', () => {
       }
       expect(result.value.cards[0]).toEqual(expectedResult)
     })
-    it('should prefer postgres cards over card trader', async () => {
-      const postgresCard = makePokemonCardMock({ blueprintId: 1 })
-      pokemonCardFactory_FAKE.FROM_POSTGRES.mockResolvedValue([postgresCard])
-      await getCatalogUseCase.call(BASE_SET_EXPANSION_ID, BLUEPRINT_VALUES)
-      expect(pokemonCardFactory_FAKE.FROM_CARD_TRADER).not.toHaveBeenCalled()
-    })
-    it('should return blueprints with no prices when prices are not available', async () => {
-      pokemonCardFactory_FAKE.FROM_CARD_TRADER.mockResolvedValue([
-        makePokemonCardMock({ blueprintId: 1, expansionId: 2 }),
-      ])
+    it('should return cards with no prices when prices are not available', async () => {
+      pokemonCardFactory_FAKE.MAKE_LIST.mockResolvedValue([makePokemonCardMock({ blueprintId: 1, expansionId: 2 })])
       const result = await getCatalogUseCase.call(BASE_SET_EXPANSION_ID, new Map<string, BlueprintValue>())
       expect(result.value.cards[0].medianMarketValueCents).toEqual(-1)
     })
-    it('should return blueprints with owned values when user is logged in', async () => {
-      pokemonCardFactory_FAKE.FROM_CARD_TRADER.mockResolvedValue([
+    it('should return cards with owned values when user is logged in', async () => {
+      pokemonCardFactory_FAKE.MAKE_LIST.mockResolvedValue([
         makePokemonCardMock({ blueprintId: 1 }),
         makePokemonCardMock({ blueprintId: 2 }),
         makePokemonCardMock({ blueprintId: 3 }),

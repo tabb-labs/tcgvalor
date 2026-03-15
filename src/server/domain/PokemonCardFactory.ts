@@ -3,8 +3,7 @@ import { ICardBlueprintPokemonRepo } from '../repository/CardBlueprintPokemonRep
 import PokemonCard from './PokemonCard'
 
 export interface IPokemonCardFactory {
-  fromPostgres: (cardTraderExpansionId: number) => Promise<PokemonCard[]>
-  fromCardTrader: (cardTraderExpansionId: number) => Promise<PokemonCard[]>
+  makeList: (cardTraderExpansionId: number) => Promise<PokemonCard[]>
 }
 
 class PokemonCardFactory implements IPokemonCardFactory {
@@ -16,7 +15,14 @@ class PokemonCardFactory implements IPokemonCardFactory {
     this.cardTraderAdaptor = cardTraderAdaptor
   }
 
-  fromPostgres = async (cardTraderExpansionId: number): Promise<PokemonCard[]> => {
+  makeList = async (cardTraderExpansionId: number): Promise<PokemonCard[]> => {
+    const postgresCards = await this.fromPostgres(cardTraderExpansionId)
+    if (postgresCards.length > 0) return postgresCards
+
+    return await this.fromCardTrader(cardTraderExpansionId)
+  }
+
+  private fromPostgres = async (cardTraderExpansionId: number): Promise<PokemonCard[]> => {
     const blueprints = await this.cardBlueprintPokemonRepo.listByExpansion(cardTraderExpansionId)
     return blueprints.map((b) => {
       const link = b.platformLinks.find((l) => l.platform === 'CARD_TRADER')
@@ -33,7 +39,7 @@ class PokemonCardFactory implements IPokemonCardFactory {
     })
   }
 
-  fromCardTrader = async (cardTraderExpansionId: number): Promise<PokemonCard[]> => {
+  private fromCardTrader = async (cardTraderExpansionId: number): Promise<PokemonCard[]> => {
     const blueprints = await this.cardTraderAdaptor.getPokemonBlueprints(cardTraderExpansionId)
     return blueprints.map(
       (b) =>
