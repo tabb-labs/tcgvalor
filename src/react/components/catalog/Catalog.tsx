@@ -9,6 +9,7 @@ import { DropdownOption } from '../base/form/utilities/InputFieldDropdown'
 import CatalogExpansionDetails from './CatalogExpansionDetails'
 import { useRouter } from '../../router/useRouter'
 import { useExpansion } from '../../providers/ExpansionProvider'
+import { useToastContext } from '../../providers/ToastProvider'
 import { PATH_VALUES } from '../../router/pathValues'
 import CardList from '../card-list/CardList'
 import { setCatalogReturnUrl } from '../../router/catalogReturnUrl'
@@ -75,6 +76,7 @@ const Catalog = () => {
 
 export const useInCatalog = () => {
   const { expansions } = useExpansion()
+  const { showError } = useToastContext()
   const [isLoadingCatalog, setIsLoadingCatalog] = useState(false)
   const { getParam, navigateTo } = useRouter()
   const expansionSlug = getParam('expansionSlug')
@@ -92,7 +94,7 @@ export const useInCatalog = () => {
         setSelectedExpansion(res.data)
         setFilteredCardsDto(res.data?.cards.sort(sortByHighestMedian) ?? [])
       })
-      .catch((err) => console.log(err))
+      .catch(() => showError('Failed to load catalog'))
       .finally(() => {
         setIsLoadingCatalog(false)
       })

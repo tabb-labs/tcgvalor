@@ -27,7 +27,10 @@ export const useInAddCardButton = (cardDto: CardDto, refreshCards: () => void) =
     return addUserCard(dto)
   }
 
-  const cardButtonBase = useWithCardButtonBase(addCard, refreshCards)
+  const cardButtonBase = useWithCardButtonBase(addCard, refreshCards, {
+    success: 'Card Added',
+    error: 'Failed to Add Card',
+  })
   return { ...cardButtonBase, title: 'Add' }
 }
 
