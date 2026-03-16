@@ -7,6 +7,7 @@ import Router from './router/Router'
 import { ExpansionContextProvider } from './providers/ExpansionProvider'
 import { StoreStatusContextProvider } from './providers/StoreStatusProvider'
 import { AnalyticsContextProvider } from './providers/AnalyticsProvider'
+import { ToastContextProvider } from './providers/ToastProvider'
 
 const App = () => {
   return (
@@ -17,8 +18,10 @@ const App = () => {
             <StoreStatusContextProvider>
               <GlobalPopupContextProvider>
                 <StyledProvider>
-                  <GlobalOverlays />
-                  <Router />
+                  <ToastContextProvider>
+                    <GlobalOverlays />
+                    <Router />
+                  </ToastContextProvider>
                 </StyledProvider>
               </GlobalPopupContextProvider>
             </StoreStatusContextProvider>
