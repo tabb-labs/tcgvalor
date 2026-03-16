@@ -58,7 +58,7 @@ const fadeOut = keyframes`
 
 const ToastStack = styled.div`
   position: fixed;
-  bottom: 2rem;
+  bottom: 4rem;
   right: 2rem;
   display: flex;
   flex-direction: column;

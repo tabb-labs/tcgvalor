@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { Button } from '../../base/Button'
 import { Loader } from '../../base/Loader'
 import Checkmark from '../../base/Checkmark'
+import { useToastContext } from '../../../providers/ToastProvider'
 
 const Container = styled.div`
   display: flex;
@@ -39,6 +40,7 @@ const CardButtonBase = ({ title, shouldShowLoading, shouldShowCheckmark, isDisab
 export const useWithCardButtonBase = (action: () => Promise<void>, onComplete: () => void): CardButtonBaseProps => {
   const [isLoading, setIsLoading] = useState(false)
   const [showCheckmark, setShowCheckmark] = useState(false)
+  const { showSuccess, showError } = useToastContext()
 
   useEffect(() => {
     if (showCheckmark) {
@@ -52,8 +54,11 @@ export const useWithCardButtonBase = (action: () => Promise<void>, onComplete: (
       .then(() => {
         onComplete()
         setShowCheckmark(true)
+        showSuccess('Card Added')
       })
-      .catch(console.dir)
+      .catch(() => {
+        showError('Failed to Add Card')
+      })
       .finally(() => setIsLoading(false))
   }
 
