@@ -25,6 +25,7 @@ const ContentWell = styled.div`
   flex-direction: column;
   gap: 1rem;
   width: 100%;
+  min-width: 0;
 `
 
 const Details = styled.div`
