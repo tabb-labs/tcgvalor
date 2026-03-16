@@ -10,9 +10,11 @@ type ToastType = 'success' | 'error'
 type ToastState = {
   message: string
   type: ToastType
-  id: number
+  id: string
   leaving: boolean
 }
+
+const randomSuffix = () => Math.random().toString(36).slice(2, 5)
 
 const DURATION_MS = 3000
 const FADE_MS = 300
@@ -21,7 +23,7 @@ export const useToast = () => {
   const [toasts, setToasts] = useState<ToastState[]>([])
 
   const show = useCallback((message: string, type: ToastType) => {
-    const id = Date.now()
+    const id = `${Date.now()}-${randomSuffix()}`
     setToasts((current) => [...current, { message, type, id, leaving: false }])
 
     setTimeout(() => {
