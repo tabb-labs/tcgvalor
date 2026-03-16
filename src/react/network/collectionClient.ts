@@ -6,11 +6,11 @@ export const addUserCard = async (addUserCardBody: AddUserCardBody) => {
   await fetchApi({ path: '/collection', method: 'POST', body: addUserCardBody })
 }
 
-export const removeUserCard = async (blueprintId: number) => {
+export const removeUserCard = async (userCardId: number) => {
   await fetchApi({
     path: '/collection',
     method: 'DELETE',
-    body: { blueprintId },
+    body: { userCardId },
   })
 }
 

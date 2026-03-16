@@ -1,19 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Router } from 'express'
+import { StoreStatusDto } from '@core/network-types/store'
 import Store from '../StoreRegistry'
-import GetStoreStatusUseCase from '../use-cases/store/GetStoreStatusUseCase'
 import { ENV } from '../env'
 
 const StoreController = Router()
 
 StoreController.get('/status', (_, res) => {
-  const getStoreStatusUseCase = new GetStoreStatusUseCase()
-  const result = getStoreStatusUseCase.call(Store.expansions.getLastUpdated(), Store.blueprintValues.getLastUpdated())
-  if (result.isSuccess()) {
-    res.sendData({ data: result.value })
-  } else {
-    res.sendError({ errors: [result.error] })
+  const storeStatus: StoreStatusDto = {
+    expansionsLastUpdatedDateString: Store.expansions.getLastUpdated()?.toISOString() ?? null,
+    pricesLastUpdatedDateString: Store.blueprintValues.getLastUpdated()?.toISOString() ?? null,
   }
+  res.sendData({ data: storeStatus })
 })
 
 StoreController.post('/marketplace/refresh', (req, res) => {

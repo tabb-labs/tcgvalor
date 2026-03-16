@@ -1,7 +1,7 @@
 import { SortableExpansion } from '../../../../src/server/use-cases/catalog/ExpansionSorter'
 import GetExpansionsUseCase from '../../../../src/server/use-cases/catalog/GetExpansionsUseCase'
 import { CardExpansion } from '../../../../src/server/types/CardExpansion'
-import CardTraderAdaptor_FAKE from '../../__FAKES__/CardTraderAdaptor.fake'
+import CardTraderClient_FAKE from '../../__FAKES__/CardTraderClient.fake'
 import ExpansionPokemonRepo_FAKE from '../../__FAKES__/ExpansionPokemonRepo.fake'
 import ExpansionSorter_FAKE from '../../__FAKES__/ExpansionSorter.fake'
 import {
@@ -25,7 +25,7 @@ const mockPrisma = makePrismaClientMock({ expansionPokemonOrder: { findFirst: je
 
 describe('Get Expansions UseCase', () => {
   let getExpansionsUseCase: GetExpansionsUseCase
-  let cardTraderAdaptor_FAKE: CardTraderAdaptor_FAKE
+  let cardTraderClient_FAKE: CardTraderClient_FAKE
   let expansionSorter_FAKE: ExpansionSorter_FAKE
   let expansionPokemonRepo_FAKE: ExpansionPokemonRepo_FAKE
 
@@ -46,19 +46,19 @@ describe('Get Expansions UseCase', () => {
   ]
 
   beforeEach(() => {
-    cardTraderAdaptor_FAKE = new CardTraderAdaptor_FAKE()
+    cardTraderClient_FAKE = new CardTraderClient_FAKE()
     expansionSorter_FAKE = new ExpansionSorter_FAKE()
     expansionPokemonRepo_FAKE = new ExpansionPokemonRepo_FAKE()
     getExpansionsUseCase = new GetExpansionsUseCase(
       mockPrisma,
-      cardTraderAdaptor_FAKE,
+      cardTraderClient_FAKE,
       expansionSorter_FAKE,
       expansionPokemonRepo_FAKE
     )
   })
 
   it("should get pokemon expansions and return card dto's", async () => {
-    cardTraderAdaptor_FAKE.GET_POKEMON_EXPANSIONS.mockResolvedValue(cardExpansions)
+    cardTraderClient_FAKE.GET_POKEMON_EXPANSIONS.mockResolvedValue(cardExpansions)
     expansionSorter_FAKE.SORT.mockReturnValue(sortableExpansions)
     mockPrisma.expansionPokemonOrder.findFirst.mockResolvedValue(EXPANSION_ORDER)
 
@@ -75,7 +75,7 @@ describe('Get Expansions UseCase', () => {
   })
 
   it('should format slug', async () => {
-    cardTraderAdaptor_FAKE.GET_POKEMON_EXPANSIONS.mockResolvedValue(cardExpansions)
+    cardTraderClient_FAKE.GET_POKEMON_EXPANSIONS.mockResolvedValue(cardExpansions)
     expansionSorter_FAKE.SORT.mockReturnValue(sortableExpansions)
     mockPrisma.expansionPokemonOrder.findFirst.mockResolvedValue(EXPANSION_ORDER)
 

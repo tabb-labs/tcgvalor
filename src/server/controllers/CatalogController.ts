@@ -1,11 +1,12 @@
 import { Router } from 'express'
 import GetCatalogUseCase from '../use-cases/catalog/GetCatalogUseCase'
 import UserCardRepo from '../repository/UserCardRepo'
-import CardTraderAdaptor from '../clients/CardTrader/CardTraderAdaptor'
+import CardTraderClient from '../clients/CardTrader/CardTraderClient'
 import Store from '../StoreRegistry'
 import ExpansionPokemonRepo from '../repository/ExpansionPokemonRepo'
 import CardBlueprintPokemonRepo from '../repository/CardBlueprintPokemonRepo'
 import PokemonCardFactory from '../domain/PokemonCardFactory'
+import PokemonExpansionFactory from '../domain/PokemonExpansionFactory'
 import { asyncHandler } from '../http/asyncHandler'
 
 const CatalogController = Router()
@@ -23,10 +24,16 @@ CatalogController.get(
       return
     }
 
-    const pokemonCardFactory = new PokemonCardFactory(new CardBlueprintPokemonRepo(), new CardTraderAdaptor())
-    const getCatalogUseCase = new GetCatalogUseCase(new UserCardRepo(), new ExpansionPokemonRepo(), pokemonCardFactory)
+    const pokemonCardFactory = new PokemonCardFactory(
+      new CardBlueprintPokemonRepo(),
+      new CardTraderClient(),
+      Store.blueprintValues.getState(),
+      new UserCardRepo()
+    )
+    const pokemonExpansionFactory = new PokemonExpansionFactory(new ExpansionPokemonRepo())
+    const getCatalogUseCase = new GetCatalogUseCase(pokemonExpansionFactory, pokemonCardFactory)
 
-    const result = await getCatalogUseCase.call(expansionId, Store.blueprintValues.getState(), req.currentUser?.id)
+    const result = await getCatalogUseCase.call(expansionId, req.currentUser?.id)
     if (result.isSuccess()) {
       res.sendData({ data: result.value })
     } else {

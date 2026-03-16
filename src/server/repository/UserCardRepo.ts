@@ -6,27 +6,11 @@ export type UserCardWithBlueprint = Prisma.UserCardGetPayload<{
 }>
 
 export interface IUserCardRepo {
-  removeItem: (userId: string, blueprintId: number) => Promise<void>
   listByExpansion: (userId: number, expansionId: number) => Promise<UserCardWithBlueprint[]>
   listAll: (userId: number) => Promise<{ card: UserCardWithBlueprint; expansionId: number }[]>
 }
 
 class UserCardRepo implements IUserCardRepo {
-  removeItem = async (userId: string, blueprintId: number): Promise<void> => {
-    const user = await prisma.user.findUnique({ where: { externalId: userId } })
-    if (!user) return
-
-    const cardBlueprintId = await this.findCardBlueprintId(blueprintId)
-    if (!cardBlueprintId) return
-
-    const card = await prisma.userCard.findFirst({
-      where: { userId: user.id, cardBlueprintId },
-    })
-    if (!card) return
-
-    await prisma.userCard.delete({ where: { id: card.id } })
-  }
-
   listByExpansion = async (userId: number, cardTraderExpansionId: number): Promise<UserCardWithBlueprint[]> => {
     const expansionLink = await prisma.expansionPlatformLink.findFirst({
       where: { platform: 'CARD_TRADER', externalId: String(cardTraderExpansionId) },
@@ -66,13 +50,6 @@ class UserCardRepo implements IUserCardRepo {
         expansionId: Number(expansionLink?.externalId ?? -1),
       }
     })
-  }
-
-  private findCardBlueprintId = async (cardTraderBlueprintId: number): Promise<number | null> => {
-    const link = await prisma.cardBlueprintPlatformLink.findFirst({
-      where: { platform: 'CARD_TRADER', externalId: String(cardTraderBlueprintId) },
-    })
-    return link?.cardBlueprintId ?? null
   }
 }
 

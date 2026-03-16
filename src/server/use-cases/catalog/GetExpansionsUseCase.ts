@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { ExpansionDto } from '@core/network-types/catalog'
-import { ICardTraderAdaptor } from '../../clients/CardTrader/CardTraderAdaptor'
+import { ICardTraderClient } from '../../clients/CardTrader/CardTraderClient'
 import { IExpansionPokemonRepo } from '../../repository/ExpansionPokemonRepo'
 import { CardExpansion } from '../../types/CardExpansion'
 import { IExpansionSorter, SortableExpansion } from './ExpansionSorter'
@@ -12,24 +12,24 @@ export interface IGetExpansionsUseCase {
 
 class GetExpansionsUseCase implements IGetExpansionsUseCase {
   private readonly prisma: PrismaClient
-  private readonly cardTraderAdaptor: ICardTraderAdaptor
+  private readonly cardTraderClient: ICardTraderClient
   private readonly expansionSorter: IExpansionSorter
   private readonly expansionPokemonRepo: IExpansionPokemonRepo
 
   constructor(
     prisma: PrismaClient,
-    cardTraderAdaptor: ICardTraderAdaptor,
+    cardTraderClient: ICardTraderClient,
     expansionSorter: IExpansionSorter,
     expansionPokemonRepo: IExpansionPokemonRepo
   ) {
     this.prisma = prisma
-    this.cardTraderAdaptor = cardTraderAdaptor
+    this.cardTraderClient = cardTraderClient
     this.expansionSorter = expansionSorter
     this.expansionPokemonRepo = expansionPokemonRepo
   }
 
   call = async (): Promise<Result<ExpansionDto[]>> => {
-    const pokemonExpansions = await this.cardTraderAdaptor.getPokemonExpansions()
+    const pokemonExpansions = await this.cardTraderClient.getPokemonExpansions()
 
     const sortableExpansions = await this.getSortableExpansions(pokemonExpansions)
 

@@ -4,10 +4,9 @@ import AddCardTraderCardUseCase from '../use-cases/collection/AddCardTraderCardU
 import UserCardRepo from '../repository/UserCardRepo'
 import ExpansionPokemonRepo from '../repository/ExpansionPokemonRepo'
 import CardBlueprintPokemonRepo from '../repository/CardBlueprintPokemonRepo'
-import CardTraderAdaptor from '../clients/CardTrader/CardTraderAdaptor'
+import CardTraderClient from '../clients/CardTrader/CardTraderClient'
 import GetCollectionUseCase from '../use-cases/collection/GetCollectionUseCase'
 import Store from '../StoreRegistry'
-import RemoveCardUseCase from '../use-cases/collection/RemoveCardUseCase'
 import GetShareCollectionUseCase from '../use-cases/collection/GetShareCollectionUseCase'
 import CollectionFactory from '../domain/CollectionFactory'
 import { prisma } from '../../../prisma/prismaClient'
@@ -57,7 +56,7 @@ CollectionController.post(
     }
     const addCardTraderCardUseCase = new AddCardTraderCardUseCase(
       prisma,
-      new CardTraderAdaptor(),
+      new CardTraderClient(),
       new ExpansionPokemonRepo(),
       new CardBlueprintPokemonRepo()
     )
@@ -84,13 +83,8 @@ CollectionController.delete(
       res.sendError({ errors: parsed.error.issues.map((issue) => issue.message), status: 400 })
       return
     }
-    const removeCardUseCase = new RemoveCardUseCase(new UserCardRepo())
-    const result = await removeCardUseCase.call(req.currentUser!.externalId, parsed.data.blueprintId)
-    if (result.isSuccess()) {
-      res.sendSuccess()
-    } else {
-      res.sendError({ errors: [result.error], status: 409 })
-    }
+    await prisma.userCard.delete({ where: { id: parsed.data.userCardId, userId: req.currentUser!.id } })
+    res.sendSuccess()
   })
 )
 

@@ -1,4 +1,4 @@
-import { CardBlueprint } from '../../../src/server/types/CardBlueprint'
+import { CardTraderBlueprintDto } from '../../../src/server/clients/CardTrader/parseBlueprints'
 
 type MakeCardBlueprintMockArgs = {
   blueprintId?: number
@@ -20,13 +20,19 @@ export const makeCardBlueprintMock = ({
   pokemonRarity = 'Common',
   imageUrlPreview = 'image url preview',
   imageUrlShow = 'image url show',
-}: MakeCardBlueprintMockArgs): CardBlueprint => ({
-  blueprintId,
+}: MakeCardBlueprintMockArgs): CardTraderBlueprintDto => ({
+  id: blueprintId,
   expansionId,
   name,
   version,
-  collectorNumber,
-  pokemonRarity,
-  imageUrlShow,
-  imageUrlPreview,
+  gameId: 5,
+  categoryId: 73,
+  fixedProperties: {
+    collectorNumber,
+    pokemonRarity,
+  },
+  image: {
+    show: { url: imageUrlShow },
+    preview: { url: imageUrlPreview },
+  },
 })

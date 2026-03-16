@@ -1,5 +1,5 @@
 import { Result } from '@use-cases/Result'
-import { ICardTraderAdaptor } from '../../clients/CardTrader/CardTraderAdaptor'
+import { ICardTraderClient } from '../../clients/CardTrader/CardTraderClient'
 import { BlueprintValue } from '../../types/BlueprintValue'
 
 export interface IGetBlueprintValueUseCase {
@@ -7,14 +7,14 @@ export interface IGetBlueprintValueUseCase {
 }
 
 class GetBlueprintValueUseCase implements IGetBlueprintValueUseCase {
-  private cardTraderAdaptor: ICardTraderAdaptor
+  private cardTraderClient: ICardTraderClient
 
-  constructor(cardTraderAdaptor: ICardTraderAdaptor) {
-    this.cardTraderAdaptor = cardTraderAdaptor
+  constructor(cardTraderClient: ICardTraderClient) {
+    this.cardTraderClient = cardTraderClient
   }
   call = async (expansionId: number) => {
     const blueprintIdToBlueprintValueMap = new Map<string, BlueprintValue>()
-    const blueprintIdToCardValueMap = await this.cardTraderAdaptor.getPokemonCardValues(expansionId)
+    const blueprintIdToCardValueMap = await this.cardTraderClient.getPokemonCardValues(expansionId)
 
     blueprintIdToCardValueMap.forEach((cardValues, blueprintId) => {
       const cardPrices = cardValues.map((v) => v.priceCents)

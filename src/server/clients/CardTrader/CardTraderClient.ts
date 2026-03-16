@@ -1,7 +1,10 @@
 import { ENV } from '../../env'
-import { tryToParseBlueprints } from './parseBlueprints'
+import { CardExpansion } from '../../types/CardExpansion'
+import { CardValue } from '../../types/CardValue'
+import { CardTraderBlueprintDto, tryToParseBlueprints } from './parseBlueprints'
 import { tryToParseExpansions } from './parseExpansions'
 import { tryToParseMarketplaceProducts } from './parseMarketplaceProducts'
+import { EXCLUDED_EXPANSION_IDS } from './excludedExpansionIds'
 
 const CARD_TRADER = ENV.CARD_TRADER
 
@@ -13,14 +16,48 @@ const clientFetch = async <T>(path: string, parser: (data: unknown) => T) => {
   return parser(data)
 }
 
-export const getExpansions = async () => {
-  return await clientFetch('/expansions', tryToParseExpansions)
+export const getExpansions = () => clientFetch('/expansions', tryToParseExpansions)
+
+export const getBlueprints = (expansionId: number) =>
+  clientFetch(`/blueprints/export?expansion_id=${expansionId}`, tryToParseBlueprints)
+
+export const getMarketplaceProducts = (expansionId: number) =>
+  clientFetch(`/marketplace/products?expansion_id=${expansionId}`, tryToParseMarketplaceProducts)
+
+export interface ICardTraderClient {
+  getPokemonExpansions: () => Promise<CardExpansion[]>
+  getPokemonBlueprints: (expansionId: number) => Promise<CardTraderBlueprintDto[]>
+  getPokemonCardValues: (expansionId: number) => Promise<Map<string, CardValue[]>>
 }
 
-export const getBlueprints = async (expansionId: number) => {
-  return await clientFetch(`/blueprints/export?expansion_id=${expansionId}`, tryToParseBlueprints)
+class CardTraderClient implements ICardTraderClient {
+  getPokemonExpansions = async (): Promise<CardExpansion[]> => {
+    const expansions = await getExpansions()
+    return expansions
+      .filter((e) => e.gameId === CARD_TRADER.POKEMON_GAME_ID && !EXCLUDED_EXPANSION_IDS.includes(e.id))
+      .map((e) => ({ expansionId: e.id, name: e.name }))
+  }
+
+  getPokemonBlueprints = async (expansionId: number): Promise<CardTraderBlueprintDto[]> => {
+    const blueprints = await getBlueprints(expansionId)
+    return blueprints.filter((b) => b.categoryId === CARD_TRADER.POKEMON_SINGLE_CARD_CATEGORY)
+  }
+
+  getPokemonCardValues = async (expansionId: number): Promise<Map<string, CardValue[]>> => {
+    const productsMap = await getMarketplaceProducts(expansionId)
+    const result = new Map<string, CardValue[]>()
+    productsMap.forEach((value, key) => {
+      result.set(
+        key,
+        value.map((v) => ({
+          blueprintId: v.blueprintId,
+          priceCents: v.price.cents,
+          condition: v.propertiesHash.condition ?? '',
+        }))
+      )
+    })
+    return result
+  }
 }
 
-export const getMarketplaceProducts = async (expansionId: number) => {
-  return await clientFetch(`/marketplace/products?expansion_id=${expansionId}`, tryToParseMarketplaceProducts)
-}
+export default CardTraderClient

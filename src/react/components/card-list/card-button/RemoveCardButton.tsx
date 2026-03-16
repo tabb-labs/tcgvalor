@@ -4,25 +4,24 @@ import { removeUserCard } from '../../../network/collectionClient'
 import CardButtonBase, { useWithCardButtonBase } from './CardButton'
 
 type RemoveCardButtonProps = {
-  blueprintId: number
-  cardsOwned: number
+  userCardIds: number[]
   refreshCards: () => void
 }
 
-const RemoveCardButton = ({ blueprintId, cardsOwned, refreshCards }: RemoveCardButtonProps) => {
-  const cardButton = useInRemoveCardButton(blueprintId, cardsOwned, refreshCards)
+const RemoveCardButton = ({ userCardIds, refreshCards }: RemoveCardButtonProps) => {
+  const cardButton = useInRemoveCardButton(userCardIds, refreshCards)
 
   return <CardButtonBase {...cardButton} />
 }
 
-export const useInRemoveCardButton = (blueprintId: number, cardsOwned: number, refreshCards: () => void) => {
+export const useInRemoveCardButton = (userCardIds: number[], refreshCards: () => void) => {
   const removeCard = () => {
-    return removeUserCard(blueprintId)
+    return removeUserCard(userCardIds[0])
   }
 
   const cardButtonBase = useWithCardButtonBase(removeCard, refreshCards)
 
-  const isDisabled = cardsOwned <= 0 ? true : cardButtonBase.isDisabled
+  const isDisabled = userCardIds.length === 0 ? true : cardButtonBase.isDisabled
   return { ...cardButtonBase, title: 'Remove', isDisabled }
 }
 

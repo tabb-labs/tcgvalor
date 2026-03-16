@@ -1,16 +1,16 @@
 import GetBlueprintValueUseCase from '../../../../src/server/use-cases/price/GetBlueprintValueUseCase'
 import { CardValue } from '../../../../src/server/types/CardValue'
-import CardTraderAdaptor_FAKE from '../../__FAKES__/CardTraderAdaptor.fake'
+import CardTraderClient_FAKE from '../../__FAKES__/CardTraderClient.fake'
 import { makeCardValueMock } from '../../__MOCKS__/cardValue.mock'
 
 describe('Get Expansion Blueprint Value UseCase', () => {
   const EXPANSION_ID = 1234
-  let cardTraderAdaptor_FAKE: CardTraderAdaptor_FAKE
+  let cardTraderClient_FAKE: CardTraderClient_FAKE
   let getBlueprintValueUseCase: GetBlueprintValueUseCase
 
   beforeEach(() => {
-    cardTraderAdaptor_FAKE = new CardTraderAdaptor_FAKE()
-    getBlueprintValueUseCase = new GetBlueprintValueUseCase(cardTraderAdaptor_FAKE)
+    cardTraderClient_FAKE = new CardTraderClient_FAKE()
+    getBlueprintValueUseCase = new GetBlueprintValueUseCase(cardTraderClient_FAKE)
   })
 
   it('should get results from map', async () => {
@@ -38,11 +38,11 @@ describe('Get Expansion Blueprint Value UseCase', () => {
         ],
       ],
     ])
-    cardTraderAdaptor_FAKE.GET_POKEMON_CARD_VALUES.mockResolvedValue(cardValueMap)
+    cardTraderClient_FAKE.GET_POKEMON_CARD_VALUES.mockResolvedValue(cardValueMap)
 
     const blueprintValueMap = await getBlueprintValueUseCase.call(EXPANSION_ID)
 
-    expect(cardTraderAdaptor_FAKE.GET_POKEMON_CARD_VALUES).toHaveBeenCalledWith(EXPANSION_ID)
+    expect(cardTraderClient_FAKE.GET_POKEMON_CARD_VALUES).toHaveBeenCalledWith(EXPANSION_ID)
 
     expect(blueprintValueMap.value.size).toEqual(2)
     expect(blueprintValueMap.value.get('1')!.medianCents).toEqual(4)
