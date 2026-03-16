@@ -37,7 +37,11 @@ const CardButtonBase = ({ title, shouldShowLoading, shouldShowCheckmark, isDisab
   )
 }
 
-export const useWithCardButtonBase = (action: () => Promise<void>, onComplete: () => void): CardButtonBaseProps => {
+export const useWithCardButtonBase = (
+  action: () => Promise<void>,
+  onComplete: () => void,
+  messages: { success: string; error: string }
+): CardButtonBaseProps => {
   const [isLoading, setIsLoading] = useState(false)
   const [showCheckmark, setShowCheckmark] = useState(false)
   const { showSuccess, showError } = useToastContext()
@@ -54,10 +58,10 @@ export const useWithCardButtonBase = (action: () => Promise<void>, onComplete: (
       .then(() => {
         onComplete()
         setShowCheckmark(true)
-        showSuccess('Card Added')
+        showSuccess(messages.success)
       })
       .catch(() => {
-        showError('Failed to Add Card')
+        showError(messages.error)
       })
       .finally(() => setIsLoading(false))
   }
