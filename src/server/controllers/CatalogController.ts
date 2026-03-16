@@ -27,10 +27,11 @@ CatalogController.get(
     const pokemonCardFactory = new PokemonCardFactory(
       new CardBlueprintPokemonRepo(),
       new CardTraderClient(),
-      Store.blueprintValues.getState()
+      Store.blueprintValues.getState(),
+      new UserCardRepo()
     )
     const pokemonExpansionFactory = new PokemonExpansionFactory(new ExpansionPokemonRepo())
-    const getCatalogUseCase = new GetCatalogUseCase(new UserCardRepo(), pokemonExpansionFactory, pokemonCardFactory)
+    const getCatalogUseCase = new GetCatalogUseCase(pokemonExpansionFactory, pokemonCardFactory)
 
     const result = await getCatalogUseCase.call(expansionId, req.currentUser?.id)
     if (result.isSuccess()) {

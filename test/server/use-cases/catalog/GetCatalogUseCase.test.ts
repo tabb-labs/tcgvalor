@@ -2,14 +2,11 @@ import { CardDto } from '@core/network-types/card'
 import GetCatalogUseCase from '../../../../src/server/use-cases/catalog/GetCatalogUseCase'
 import PokemonExpansionFactory_FAKE from '../../__FAKES__/PokemonExpansionFactory.fake'
 import { makePokemonExpansionMock } from '../../__MOCKS__/pokemonExpansion.mock'
-import UserCardRepo_FAKE from '../../__FAKES__/UserCardRepo.fake'
 import PokemonCardFactory_FAKE from '../../__FAKES__/PokemonCardFactory.fake'
 import { makePokemonCardMock } from '../../__MOCKS__/pokemonCard.mock'
-import { makeUserCardWithBlueprintMock } from '../../__MOCKS__/userCardWithBlueprint.mock'
 
 describe('Get Catalog UseCase', () => {
   let getCatalogUseCase: GetCatalogUseCase
-  let userCardRepo_FAKE: UserCardRepo_FAKE
   let pokemonExpansionFactory_FAKE: PokemonExpansionFactory_FAKE
   let pokemonCardFactory_FAKE: PokemonCardFactory_FAKE
 
@@ -17,13 +14,11 @@ describe('Get Catalog UseCase', () => {
   const USER_ID = 10
 
   beforeEach(() => {
-    userCardRepo_FAKE = new UserCardRepo_FAKE()
     pokemonExpansionFactory_FAKE = new PokemonExpansionFactory_FAKE()
     pokemonCardFactory_FAKE = new PokemonCardFactory_FAKE()
-    getCatalogUseCase = new GetCatalogUseCase(userCardRepo_FAKE, pokemonExpansionFactory_FAKE, pokemonCardFactory_FAKE)
+    getCatalogUseCase = new GetCatalogUseCase(pokemonExpansionFactory_FAKE, pokemonCardFactory_FAKE)
 
     pokemonCardFactory_FAKE.MAKE_LIST.mockResolvedValue([])
-    userCardRepo_FAKE.FIND_BY_EXPANSION.mockResolvedValue([])
     pokemonExpansionFactory_FAKE.MAKE.mockResolvedValue(makePokemonExpansionMock())
   })
 
@@ -67,7 +62,7 @@ describe('Get Catalog UseCase', () => {
   describe('Cards', () => {
     it('should return an empty array when no cards exist', async () => {
       const result = await getCatalogUseCase.call(BASE_SET_EXPANSION_ID)
-      expect(pokemonCardFactory_FAKE.MAKE_LIST).toHaveBeenCalledWith(BASE_SET_EXPANSION_ID)
+      expect(pokemonCardFactory_FAKE.MAKE_LIST).toHaveBeenCalledWith(BASE_SET_EXPANSION_ID, undefined)
       expect(result.value.cards).toEqual([])
     })
     it('should return cards with their embedded values', async () => {
@@ -99,30 +94,10 @@ describe('Get Catalog UseCase', () => {
       const result = await getCatalogUseCase.call(BASE_SET_EXPANSION_ID)
       expect(result.value.cards[0].medianMarketValueCents).toEqual(-1)
     })
-    it('should return cards with owned values when user is logged in', async () => {
-      pokemonCardFactory_FAKE.MAKE_LIST.mockResolvedValue([
-        makePokemonCardMock({ blueprintId: 1 }),
-        makePokemonCardMock({ blueprintId: 2 }),
-        makePokemonCardMock({ blueprintId: 3 }),
-        makePokemonCardMock({ blueprintId: 4 }),
-        makePokemonCardMock({ blueprintId: 5 }),
-      ])
-      userCardRepo_FAKE.FIND_BY_EXPANSION.mockResolvedValue([
-        makeUserCardWithBlueprintMock({ blueprintExternalId: 2, cardBlueprintId: 2 }),
-        makeUserCardWithBlueprintMock({ blueprintExternalId: 2, cardBlueprintId: 2 }),
-        makeUserCardWithBlueprintMock({ blueprintExternalId: 2, cardBlueprintId: 2 }),
-        makeUserCardWithBlueprintMock({ blueprintExternalId: 3, cardBlueprintId: 3 }),
-        makeUserCardWithBlueprintMock({ blueprintExternalId: 3, cardBlueprintId: 3 }),
-        makeUserCardWithBlueprintMock({ blueprintExternalId: 5, cardBlueprintId: 5 }),
-      ])
+    it('should pass userId to the factory', async () => {
       const result = await getCatalogUseCase.call(BASE_SET_EXPANSION_ID, USER_ID)
-      expect(userCardRepo_FAKE.FIND_BY_EXPANSION).toHaveBeenCalledWith(USER_ID, BASE_SET_EXPANSION_ID)
-      expect(result.value.cards.length).toEqual(5)
-      expect(result.value.cards[0].userCards.length).toEqual(0)
-      expect(result.value.cards[1].userCards.length).toEqual(3)
-      expect(result.value.cards[2].userCards.length).toEqual(2)
-      expect(result.value.cards[3].userCards.length).toEqual(0)
-      expect(result.value.cards[4].userCards.length).toEqual(1)
+      expect(pokemonCardFactory_FAKE.MAKE_LIST).toHaveBeenCalledWith(BASE_SET_EXPANSION_ID, USER_ID)
+      expect(result.value.cards).toEqual([])
     })
   })
 })

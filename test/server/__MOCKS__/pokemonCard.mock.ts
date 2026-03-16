@@ -10,6 +10,7 @@ type MakePokemonCardMockArgs = {
   imageUrlShow?: string
   medianMarketValueCents?: number
   listingCount?: number
+  userCards?: { id: number; condition: string }[]
 }
 
 export const makePokemonCardMock = ({
@@ -22,6 +23,7 @@ export const makePokemonCardMock = ({
   imageUrlShow = 'image url show',
   medianMarketValueCents = -1,
   listingCount = -1,
+  userCards = [],
 }: MakePokemonCardMockArgs = {}): PokemonCard =>
   new PokemonCard({
     cardTraderBlueprintId: blueprintId,
@@ -33,4 +35,5 @@ export const makePokemonCardMock = ({
     imageUrlShow,
     medianMarketValueCents,
     listingCount,
+    userCards,
   })

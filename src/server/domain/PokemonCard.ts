@@ -1,5 +1,4 @@
 import { CardDto } from '@core/network-types/card'
-import { UserCardWithBlueprint } from '../repository/UserCardRepo'
 
 class PokemonCard {
   readonly cardTraderBlueprintId: number
@@ -11,6 +10,7 @@ class PokemonCard {
   readonly imageUrlShow: string
   readonly medianMarketValueCents: number
   readonly listingCount: number
+  readonly userCards: { id: number; condition: string }[]
 
   constructor(data: {
     cardTraderBlueprintId: number
@@ -22,6 +22,7 @@ class PokemonCard {
     imageUrlShow: string
     medianMarketValueCents: number
     listingCount: number
+    userCards?: { id: number; condition: string }[]
   }) {
     this.cardTraderBlueprintId = data.cardTraderBlueprintId
     this.cardTraderExpansionId = data.cardTraderExpansionId
@@ -32,21 +33,16 @@ class PokemonCard {
     this.imageUrlShow = data.imageUrlShow
     this.medianMarketValueCents = data.medianMarketValueCents
     this.listingCount = data.listingCount
+    this.userCards = data.userCards ?? []
   }
 
-  toCardDto = (userCards: UserCardWithBlueprint[] = []): CardDto => ({
+  toCardDto = (): CardDto => ({
     blueprintId: this.cardTraderBlueprintId,
     expansionId: this.cardTraderExpansionId,
     name: this.name,
     imageUrlPreview: this.imageUrlPreview,
     imageUrlShow: this.imageUrlShow,
-    userCards: userCards
-      .filter((c) =>
-        c.cardBlueprint.platformLinks.some(
-          (l) => l.platform === 'CARD_TRADER' && Number(l.externalId) === this.cardTraderBlueprintId
-        )
-      )
-      .map((c) => ({ id: c.id, condition: c.condition })),
+    userCards: this.userCards,
     medianMarketValueCents: this.medianMarketValueCents,
     listingCount: this.listingCount,
   })
