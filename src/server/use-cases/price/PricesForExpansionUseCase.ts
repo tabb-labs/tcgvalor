@@ -1,7 +1,7 @@
 import Logger from '../../logger'
 import { ICardTraderClient } from '../../clients/CardTrader/CardTraderClient'
 import { ICardBlueprintPokemonRepo, PokemonCardBlueprint } from '../../repository/CardBlueprintPokemonRepo'
-import { ICardBlueprintMarketValueRepo } from '../../repository/CardBlueprintMarketValueRepo'
+import { ICardBlueprintMarketValueRepo, MarketValueEntry } from '../../repository/CardBlueprintMarketValueRepo'
 import { BlueprintValue } from '../../types/BlueprintValue'
 
 export interface IPricesForExpansionUseCase {
@@ -57,13 +57,19 @@ class PricesForExpansionUseCase implements IPricesForExpansionUseCase {
   private buildUpsertValues = (
     blueprints: PokemonCardBlueprint[],
     priceMap: Map<string, BlueprintValue>
-  ): { cardBlueprintId: number; blueprintValue: BlueprintValue }[] => {
+  ): MarketValueEntry[] => {
     return blueprints.flatMap((blueprint) => {
       const link = blueprint.platformLinks.find((l) => l.platform === 'CARD_TRADER')
       if (!link) return []
       const blueprintValue = priceMap.get(link.externalId)
       if (!blueprintValue) return []
-      return [{ cardBlueprintId: blueprint.id, blueprintValue }]
+      return [
+        {
+          cardBlueprintId: blueprint.id,
+          medianCents: blueprintValue.medianCents,
+          listingCount: blueprintValue.listingCount,
+        },
+      ]
     })
   }
 

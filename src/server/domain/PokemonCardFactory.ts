@@ -1,6 +1,8 @@
 import { ICardTraderClient } from '../clients/CardTrader/CardTraderClient'
 import { ICardBlueprintPokemonRepo } from '../repository/CardBlueprintPokemonRepo'
 import { IUserCardRepo, UserCardWithBlueprint } from '../repository/UserCardRepo'
+import { ICardBlueprintMarketValueRepo } from '../repository/CardBlueprintMarketValueRepo'
+import { IGetBlueprintValueUseCase } from '../use-cases/price/GetBlueprintValueUseCase'
 import { BlueprintValue } from '../types/BlueprintValue'
 import PokemonCard from './PokemonCard'
 
@@ -11,18 +13,21 @@ export interface IPokemonCardFactory {
 class PokemonCardFactory implements IPokemonCardFactory {
   private readonly cardBlueprintPokemonRepo: ICardBlueprintPokemonRepo
   private readonly cardTraderClient: ICardTraderClient
-  private readonly blueprintValues: Map<string, BlueprintValue>
+  private readonly cardBlueprintMarketValueRepo: ICardBlueprintMarketValueRepo
+  private readonly getBlueprintValueUseCase: IGetBlueprintValueUseCase
   private readonly userCardRepo: IUserCardRepo
 
   constructor(
     cardBlueprintPokemonRepo: ICardBlueprintPokemonRepo,
     cardTraderClient: ICardTraderClient,
-    blueprintValues: Map<string, BlueprintValue>,
+    cardBlueprintMarketValueRepo: ICardBlueprintMarketValueRepo,
+    getBlueprintValueUseCase: IGetBlueprintValueUseCase,
     userCardRepo: IUserCardRepo
   ) {
     this.cardBlueprintPokemonRepo = cardBlueprintPokemonRepo
     this.cardTraderClient = cardTraderClient
-    this.blueprintValues = blueprintValues
+    this.cardBlueprintMarketValueRepo = cardBlueprintMarketValueRepo
+    this.getBlueprintValueUseCase = getBlueprintValueUseCase
     this.userCardRepo = userCardRepo
   }
 
@@ -55,11 +60,16 @@ class PokemonCardFactory implements IPokemonCardFactory {
     userCardsByBlueprintId: Map<number, { id: number; condition: string }[]>
   ): Promise<PokemonCard[]> => {
     const blueprints = await this.cardBlueprintPokemonRepo.listByExpansion(cardTraderExpansionId)
+    if (blueprints.length === 0) return []
+
+    const marketValues = await this.cardBlueprintMarketValueRepo.findAllByExpansion(cardTraderExpansionId)
+    const priceByBlueprintId = new Map(marketValues.map((v) => [v.cardBlueprintId, v]))
+
     return blueprints.map((b) => {
       const link = b.platformLinks.find((l) => l.platform === 'CARD_TRADER')
       if (!link) throw new Error(`No CARD_TRADER link for blueprint ${b.id}`)
       const blueprintId = Number(link.externalId)
-      const blueprintValue = this.blueprintValues.get(link.externalId)
+      const price = priceByBlueprintId.get(b.id)
       return new PokemonCard({
         cardTraderBlueprintId: blueprintId,
         cardTraderExpansionId,
@@ -68,8 +78,8 @@ class PokemonCardFactory implements IPokemonCardFactory {
         pokemonRarity: b.pokemonCardBlueprint?.rarity ?? '',
         imageUrlPreview: b.imagePreviewUrl,
         imageUrlShow: b.imageShowUrl,
-        medianMarketValueCents: blueprintValue?.medianCents ?? -1,
-        listingCount: blueprintValue?.listingCount ?? -1,
+        medianMarketValueCents: price?.medianCents ?? -1,
+        listingCount: price?.listingCount ?? -1,
         userCards: userCardsByBlueprintId.get(blueprintId) ?? [],
       })
     })
@@ -79,9 +89,15 @@ class PokemonCardFactory implements IPokemonCardFactory {
     cardTraderExpansionId: number,
     userCardsByBlueprintId: Map<number, { id: number; condition: string }[]>
   ): Promise<PokemonCard[]> => {
-    const blueprints = await this.cardTraderClient.getPokemonBlueprints(cardTraderExpansionId)
+    const [blueprints, priceResult] = await Promise.all([
+      this.cardTraderClient.getPokemonBlueprints(cardTraderExpansionId),
+      this.getBlueprintValueUseCase.call(cardTraderExpansionId),
+    ])
+
+    const priceMap = priceResult.isSuccess() ? priceResult.value : new Map<string, BlueprintValue>()
+
     return blueprints.map((b) => {
-      const blueprintValue = this.blueprintValues.get(`${b.id}`)
+      const price = priceMap.get(`${b.id}`)
       return new PokemonCard({
         cardTraderBlueprintId: b.id,
         cardTraderExpansionId: b.expansionId,
@@ -90,8 +106,8 @@ class PokemonCardFactory implements IPokemonCardFactory {
         pokemonRarity: b.fixedProperties.pokemonRarity,
         imageUrlPreview: b.image.preview.url,
         imageUrlShow: b.image.show.url,
-        medianMarketValueCents: blueprintValue?.medianCents ?? -1,
-        listingCount: blueprintValue?.listingCount ?? -1,
+        medianMarketValueCents: price?.medianCents ?? -1,
+        listingCount: price?.listingCount ?? -1,
         userCards: userCardsByBlueprintId.get(b.id) ?? [],
       })
     })

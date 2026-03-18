@@ -35,7 +35,8 @@ describe('Add Card Trader Card UseCase', () => {
       mockPrisma,
       cardTraderClient_FAKE,
       expansionPokemonRepo_FAKE,
-      cardBlueprintPokemonRepo_FAKE
+      cardBlueprintPokemonRepo_FAKE,
+      { call: jest.fn().mockResolvedValue(undefined) }
     )
   })
 
