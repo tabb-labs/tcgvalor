@@ -5,8 +5,10 @@ import CardTraderClient from '../clients/CardTrader/CardTraderClient'
 import Store from '../StoreRegistry'
 import ExpansionPokemonRepo from '../repository/ExpansionPokemonRepo'
 import CardBlueprintPokemonRepo from '../repository/CardBlueprintPokemonRepo'
+import CardBlueprintMarketValueRepo from '../repository/CardBlueprintMarketValueRepo'
 import PokemonCardFactory from '../domain/PokemonCardFactory'
 import PokemonExpansionFactory from '../domain/PokemonExpansionFactory'
+import PricesForExpansionUseCase from '../use-cases/price/PricesForExpansionUseCase'
 import { asyncHandler } from '../http/asyncHandler'
 
 const CatalogController = Router()
@@ -24,14 +26,25 @@ CatalogController.get(
       return
     }
 
+    const cardTraderClient = new CardTraderClient()
+    const cardBlueprintPokemonRepo = new CardBlueprintPokemonRepo()
     const pokemonCardFactory = new PokemonCardFactory(
-      new CardBlueprintPokemonRepo(),
-      new CardTraderClient(),
+      cardBlueprintPokemonRepo,
+      cardTraderClient,
       Store.blueprintValues.getState(),
       new UserCardRepo()
     )
     const pokemonExpansionFactory = new PokemonExpansionFactory(new ExpansionPokemonRepo())
-    const getCatalogUseCase = new GetCatalogUseCase(pokemonExpansionFactory, pokemonCardFactory)
+    const pricesForExpansionUseCase = new PricesForExpansionUseCase(
+      cardTraderClient,
+      cardBlueprintPokemonRepo,
+      new CardBlueprintMarketValueRepo()
+    )
+    const getCatalogUseCase = new GetCatalogUseCase(
+      pokemonExpansionFactory,
+      pokemonCardFactory,
+      pricesForExpansionUseCase
+    )
 
     const result = await getCatalogUseCase.call(expansionId, req.currentUser?.id)
     if (result.isSuccess()) {

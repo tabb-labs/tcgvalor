@@ -4,11 +4,13 @@ import PokemonExpansionFactory_FAKE from '../../__FAKES__/PokemonExpansionFactor
 import { makePokemonExpansionMock } from '../../__MOCKS__/pokemonExpansion.mock'
 import PokemonCardFactory_FAKE from '../../__FAKES__/PokemonCardFactory.fake'
 import { makePokemonCardMock } from '../../__MOCKS__/pokemonCard.mock'
+import PricesForExpansion_FAKE from '../../__FAKES__/PricesForExpansion.fake'
 
 describe('Get Catalog UseCase', () => {
   let getCatalogUseCase: GetCatalogUseCase
   let pokemonExpansionFactory_FAKE: PokemonExpansionFactory_FAKE
   let pokemonCardFactory_FAKE: PokemonCardFactory_FAKE
+  let pricesForExpansion_FAKE: PricesForExpansion_FAKE
 
   const BASE_SET_EXPANSION_ID = 1472
   const USER_ID = 10
@@ -16,7 +18,12 @@ describe('Get Catalog UseCase', () => {
   beforeEach(() => {
     pokemonExpansionFactory_FAKE = new PokemonExpansionFactory_FAKE()
     pokemonCardFactory_FAKE = new PokemonCardFactory_FAKE()
-    getCatalogUseCase = new GetCatalogUseCase(pokemonExpansionFactory_FAKE, pokemonCardFactory_FAKE)
+    pricesForExpansion_FAKE = new PricesForExpansion_FAKE()
+    getCatalogUseCase = new GetCatalogUseCase(
+      pokemonExpansionFactory_FAKE,
+      pokemonCardFactory_FAKE,
+      pricesForExpansion_FAKE
+    )
 
     pokemonCardFactory_FAKE.MAKE_LIST.mockResolvedValue([])
     pokemonExpansionFactory_FAKE.MAKE.mockResolvedValue(makePokemonExpansionMock())
