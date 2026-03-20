@@ -10,6 +10,7 @@ export interface ICardBlueprintMarketValueRepo {
   upsertMany: (values: MarketValueEntry[]) => Promise<void>
   expansionHasPrices: (cardTraderExpansionId: number) => Promise<boolean>
   findAllByExpansion: (cardTraderExpansionId: number) => Promise<MarketValueEntry[]>
+  listOwnedCardTraderExpansionIds: () => Promise<number[]>
 }
 
 class CardBlueprintMarketValueRepo implements ICardBlueprintMarketValueRepo {
@@ -49,6 +50,22 @@ class CardBlueprintMarketValueRepo implements ICardBlueprintMarketValueRepo {
       select: { id: true },
     })
     return row !== null
+  }
+
+  listOwnedCardTraderExpansionIds = async (): Promise<number[]> => {
+    const links = await prisma.expansionPlatformLink.findMany({
+      where: {
+        platform: 'CARD_TRADER',
+        expansion: {
+          cardBlueprints: {
+            some: { userCards: { some: {} } },
+          },
+        },
+      },
+      select: { externalId: true },
+      distinct: ['externalId'],
+    })
+    return links.map((l) => Number(l.externalId))
   }
 
   findAllByExpansion = async (cardTraderExpansionId: number): Promise<MarketValueEntry[]> => {

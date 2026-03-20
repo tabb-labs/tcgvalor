@@ -5,7 +5,7 @@ import { ICardBlueprintMarketValueRepo, MarketValueEntry } from '../../repositor
 import { BlueprintValue } from '../../types/BlueprintValue'
 
 export interface IPricesForExpansionUseCase {
-  call: (cardTraderExpansionId: number) => Promise<void>
+  call: (cardTraderExpansionId: number, options?: { skipIfExists?: boolean }) => Promise<void>
 }
 
 class PricesForExpansionUseCase implements IPricesForExpansionUseCase {
@@ -23,9 +23,11 @@ class PricesForExpansionUseCase implements IPricesForExpansionUseCase {
     this.cardBlueprintMarketValueRepo = cardBlueprintMarketValueRepo
   }
 
-  call = async (cardTraderExpansionId: number): Promise<void> => {
-    const hasPrices = await this.cardBlueprintMarketValueRepo.expansionHasPrices(cardTraderExpansionId)
-    if (hasPrices) return
+  call = async (cardTraderExpansionId: number, { skipIfExists = false } = {}): Promise<void> => {
+    if (skipIfExists) {
+      const hasPrices = await this.cardBlueprintMarketValueRepo.expansionHasPrices(cardTraderExpansionId)
+      if (hasPrices) return
+    }
 
     const priceMap = await this.fetchPrices(cardTraderExpansionId)
     const blueprints = await this.cardBlueprintPokemonRepo.listByExpansion(cardTraderExpansionId)

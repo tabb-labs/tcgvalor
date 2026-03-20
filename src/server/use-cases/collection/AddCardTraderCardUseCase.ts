@@ -54,7 +54,7 @@ class AddCardTraderCardUseCase implements IAddCardTraderCardUseCase {
       },
     })
 
-    this.pricesForExpansionUseCase.call(cardTraderExpansionId).catch((e) => {
+    this.pricesForExpansionUseCase.call(cardTraderExpansionId, { skipIfExists: true }).catch((e) => {
       Logger.error(`AddCardTraderCardUseCase: failed to store prices for expansion ${cardTraderExpansionId}: ${e}`)
     })
 

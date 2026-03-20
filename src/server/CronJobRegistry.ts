@@ -1,8 +1,12 @@
 import ExpansionsUpdater from './cron-jobs/ExpansionsUpdater'
+import OwnedPricesUpdater from './cron-jobs/OwnedPricesUpdater'
 import { ICronJob } from './cron-jobs/ICronJob'
-import PricesUpdater from './cron-jobs/PricesUpdater'
 import { ENV } from './env'
 import Store from './StoreRegistry'
+import CardBlueprintMarketValueRepo from './repository/CardBlueprintMarketValueRepo'
+import CardBlueprintPokemonRepo from './repository/CardBlueprintPokemonRepo'
+import CardTraderClient from './clients/CardTrader/CardTraderClient'
+import PricesForExpansionUseCase from './use-cases/price/PricesForExpansionUseCase'
 
 const oneSecondInMilliseconds = 1_000
 const oneMinuteInMilliseconds = oneSecondInMilliseconds * 60
@@ -30,7 +34,15 @@ export class CronJobRegistry {
   }
 }
 
-const pricesUpdater: ICronJob = new PricesUpdater(Store.blueprintValues)
+const cardTraderClient = new CardTraderClient()
+const cardBlueprintMarketValueRepo = new CardBlueprintMarketValueRepo()
+const pricesForExpansionUseCase = new PricesForExpansionUseCase(
+  cardTraderClient,
+  new CardBlueprintPokemonRepo(),
+  cardBlueprintMarketValueRepo
+)
+
+const pricesUpdater: ICronJob = new OwnedPricesUpdater(cardBlueprintMarketValueRepo, pricesForExpansionUseCase)
 const expansionUpdater: ICronJob = new ExpansionsUpdater(Store.expansions)
 
 const CronJobs = new CronJobRegistry(pricesUpdater, expansionUpdater)
