@@ -31,9 +31,9 @@ export class CronJobRegistry {
       this.pricesUpdater.start({ days: 4 }, fourHours)
       this.expansionUpdater.start({ days: 2 }, fourHours)
     } else {
-      const thirtySeconds = oneSecondInMilliseconds * 30
-      this.pricesUpdater.start({ minutes: 2 }, thirtySeconds)
-      this.expansionUpdater.start({ seconds: 45 }, thirtySeconds)
+      const thirtyMin = oneHourInMilliseconds / 2
+      this.pricesUpdater.start({ hours: 1 }, thirtyMin)
+      this.expansionUpdater.start({ hours: 1 }, thirtyMin)
     }
   }
 }

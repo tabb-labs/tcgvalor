@@ -11,6 +11,7 @@ export interface ICardBlueprintMarketValueRepo {
   expansionHasPrices: (cardTraderExpansionId: number) => Promise<boolean>
   findAllByExpansion: (cardTraderExpansionId: number) => Promise<MarketValueEntry[]>
   listOwnedCardTraderExpansionIds: () => Promise<number[]>
+  getLatestFetchedAt: () => Promise<Date | null>
 }
 
 class CardBlueprintMarketValueRepo implements ICardBlueprintMarketValueRepo {
@@ -66,6 +67,14 @@ class CardBlueprintMarketValueRepo implements ICardBlueprintMarketValueRepo {
       distinct: ['externalId'],
     })
     return links.map((l) => Number(l.externalId))
+  }
+
+  getLatestFetchedAt = async (): Promise<Date | null> => {
+    const row = await prisma.cardBlueprintMarketValue.findFirst({
+      orderBy: { fetchedAt: 'desc' },
+      select: { fetchedAt: true },
+    })
+    return row?.fetchedAt ?? null
   }
 
   findAllByExpansion = async (cardTraderExpansionId: number): Promise<MarketValueEntry[]> => {
