@@ -1,5 +1,4 @@
 import { IUserCardRepo, UserCardWithBlueprint } from '../repository/UserCardRepo'
-import { BlueprintValue } from '../types/BlueprintValue'
 import Collection, { ICollection } from './Collection'
 import PokemonCard from './PokemonCard'
 
@@ -8,16 +7,14 @@ export interface ICollectionFactory {
 }
 
 class CollectionFactory implements ICollectionFactory {
-  private readonly cardRepo: IUserCardRepo
-  private readonly blueprintValues: Map<string, BlueprintValue>
+  private readonly userCardRepo: IUserCardRepo
 
-  constructor(cardRepo: IUserCardRepo, blueprintValues: Map<string, BlueprintValue>) {
-    this.cardRepo = cardRepo
-    this.blueprintValues = blueprintValues
+  constructor(userCardRepo: IUserCardRepo) {
+    this.userCardRepo = userCardRepo
   }
 
   make = async (userId: number): Promise<ICollection> => {
-    const entries = await this.cardRepo.listAll(userId)
+    const entries = await this.userCardRepo.listAll(userId)
     const pokemonCards = this.buildPokemonCards(entries)
     return new Collection(pokemonCards)
   }
@@ -38,7 +35,7 @@ class CollectionFactory implements ICollectionFactory {
     return [...grouped.values()].map(({ card, expansionId, userCards }) => {
       const link = card.cardBlueprint.platformLinks.find((l) => l.platform === 'CARD_TRADER')
       const blueprintId = Number(link?.externalId ?? -1)
-      const blueprintValue = this.blueprintValues.get(`${blueprintId}`)
+      const marketValue = card.cardBlueprint.marketValue
       return new PokemonCard({
         cardTraderBlueprintId: blueprintId,
         cardTraderExpansionId: expansionId,
@@ -47,8 +44,8 @@ class CollectionFactory implements ICollectionFactory {
         pokemonRarity: '',
         imageUrlPreview: card.cardBlueprint.imagePreviewUrl,
         imageUrlShow: card.cardBlueprint.imageShowUrl,
-        medianMarketValueCents: blueprintValue?.medianCents ?? -1,
-        listingCount: blueprintValue?.listingCount ?? -1,
+        medianMarketValueCents: marketValue?.medianMarketValueCents ?? -1,
+        listingCount: marketValue?.listingCount ?? -1,
         userCards,
       })
     })

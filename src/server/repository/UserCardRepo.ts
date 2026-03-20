@@ -2,7 +2,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '../../../prisma/prismaClient'
 
 export type UserCardWithBlueprint = Prisma.UserCardGetPayload<{
-  include: { cardBlueprint: { include: { platformLinks: true } } }
+  include: { cardBlueprint: { include: { platformLinks: true; marketValue: true } } }
 }>
 
 export interface IUserCardRepo {
@@ -23,7 +23,7 @@ class UserCardRepo implements IUserCardRepo {
       where: { userId, cardBlueprint: { expansionId: expansionLink.expansionId } },
       include: {
         cardBlueprint: {
-          include: { platformLinks: true },
+          include: { platformLinks: true, marketValue: true },
         },
       },
     })
@@ -36,6 +36,7 @@ class UserCardRepo implements IUserCardRepo {
         cardBlueprint: {
           include: {
             platformLinks: true,
+            marketValue: true,
             expansion: { include: { platformLinks: true } },
           },
         },

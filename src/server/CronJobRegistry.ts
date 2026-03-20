@@ -21,6 +21,10 @@ export class CronJobRegistry {
     this.expansionUpdater = expansionsUpdater
   }
 
+  initialLoad = () => {
+    this.pricesUpdater.refresh()
+  }
+
   start = () => {
     if (ENV.ID === 'production') {
       const fourHours = oneHourInMilliseconds * 4

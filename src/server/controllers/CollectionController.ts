@@ -7,7 +7,6 @@ import CardBlueprintPokemonRepo from '../repository/CardBlueprintPokemonRepo'
 import CardBlueprintMarketValueRepo from '../repository/CardBlueprintMarketValueRepo'
 import CardTraderClient from '../clients/CardTrader/CardTraderClient'
 import GetCollectionUseCase from '../use-cases/collection/GetCollectionUseCase'
-import Store from '../StoreRegistry'
 import GetShareCollectionUseCase from '../use-cases/collection/GetShareCollectionUseCase'
 import CollectionFactory from '../domain/CollectionFactory'
 import PricesForExpansionUseCase from '../use-cases/price/PricesForExpansionUseCase'
@@ -21,7 +20,7 @@ CollectionController.get(
   '/',
   requiresAuth(),
   asyncHandler(async (req, res) => {
-    const collectionFactory = new CollectionFactory(new UserCardRepo(), Store.blueprintValues.getState())
+    const collectionFactory = new CollectionFactory(new UserCardRepo())
     const getCollectionUseCase = new GetCollectionUseCase(collectionFactory)
     const result = await getCollectionUseCase.call(req.currentUser!.id)
     if (result.isSuccess()) {
@@ -36,7 +35,7 @@ CollectionController.get(
   '/:userId',
   asyncHandler(async (req, res) => {
     const userId = Number(req.params.userId)
-    const collectionFactory = new CollectionFactory(new UserCardRepo(), Store.blueprintValues.getState())
+    const collectionFactory = new CollectionFactory(new UserCardRepo())
     const getShareCollectionUseCase = new GetShareCollectionUseCase(prisma, collectionFactory)
     const result = await getShareCollectionUseCase.call(userId)
     if (result.isSuccess()) {

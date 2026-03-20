@@ -24,7 +24,7 @@ class OwnedPricesUpdater implements ICronJob {
     }, interval)
   }
 
-  private refresh = () => {
+  refresh = () => {
     this.lastRun = new Date()
     this.cardBlueprintMarketValueRepo
       .listOwnedCardTraderExpansionIds()

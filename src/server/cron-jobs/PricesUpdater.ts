@@ -15,11 +15,11 @@ class PricesUpdater implements ICronJob {
     setInterval(() => {
       const lastDate = this.blueprintValueStore.getLastUpdated()
       const expired = isExpired({ expiresIn, lastDate, now: new Date() })
-      if (expired) this.refreshStoreWhenTimeHasPast()
+      if (expired) this.refresh()
     }, interval)
   }
 
-  private refreshStoreWhenTimeHasPast = () => {
+  refresh = () => {
     this.blueprintValueStore
       .refreshStore()
       .then(() => Logger.info('price store refreshed'))
