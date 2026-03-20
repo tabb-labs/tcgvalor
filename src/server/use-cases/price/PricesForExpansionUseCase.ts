@@ -36,7 +36,9 @@ class PricesForExpansionUseCase implements IPricesForExpansionUseCase {
     const values = this.buildUpsertValues(blueprints, priceMap)
 
     if (values.length === 0) {
-      Logger.info(`PricesForExpansionUseCase: no blueprints found for expansion ${cardTraderExpansionId}`)
+      Logger.info(
+        `PricesForExpansionUseCase: no matching blueprint-price pairs found for expansion ${cardTraderExpansionId}`
+      )
       return
     }
 

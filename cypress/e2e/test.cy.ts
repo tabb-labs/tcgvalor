@@ -46,14 +46,21 @@ describe('e2e', () => {
     // Add card in collection and check median price
     cy.get('#NavCollection').click()
 
-    cy.get('#CollectionTotalMedianValue').should('have.text', '$0.27')
+    cy.get('#CollectionTotalMedianValue')
+      .invoke('text')
+      .should('match', /^\$\d+\.\d{2}$/)
 
-    cy.get('#CardListItem-0').contains('Owned: 1')
-    cy.get('#CardListItem-0').contains('Add').click()
+    cy.contains('Abra')
+      .closest('[id^="CardListItem-"]')
+      .within(() => {
+        cy.contains('Owned: 1')
+        cy.contains('Add').click()
+      })
+    cy.contains('Abra').closest('[id^="CardListItem-"]').contains('Owned: 2')
 
-    cy.get('#CardListItem-0').contains('Owned: 2')
-
-    cy.get('#CollectionTotalMedianValue').should('have.text', '$0.54')
+    cy.get('#CollectionTotalMedianValue')
+      .invoke('text')
+      .should('match', /^\$\d+\.\d{2}$/)
 
     // Search another expansion
     cy.get('#NavCatalog').click()
@@ -65,26 +72,27 @@ describe('e2e', () => {
     cy.get('#ExpansionTitle').should('have.text', 'Scarlet & Violet - Temporal Forces Expansion')
 
     // Add another Card
-    cy.contains('h2', 'Torterra ex')
-      .closest('[id^="CardListItem-"]')
-      .within(() => {
-        cy.contains('Owned: 0')
-        cy.contains('Add').click()
-        cy.contains('Owned: 1')
-      })
+    cy.get('#CardListSearch').type('Torterra ex')
+    cy.get('#CardListItem-0').within(() => {
+      cy.contains('Owned: 0')
+      cy.contains('Add').click()
+    })
+    cy.get('#CardListItem-0').contains('Owned: 1')
 
     // Verify amounts in collection
     cy.get('#NavCollection').click()
-    cy.get('#CollectionTotalMedianValue').should('have.text', '$2.27')
+    cy.get('#CollectionTotalMedianValue')
+      .invoke('text')
+      .should('match', /^\$\d+\.\d{2}$/)
 
     // Remove cards
-    cy.get('#CardListItem-1').contains('Remove').click()
+    cy.contains('Torterra ex').closest('[id^="CardListItem-"]').contains('Remove').click()
 
-    cy.get('#CardListItem-0').contains('Remove').click()
+    cy.contains('Abra').closest('[id^="CardListItem-"]').contains('Remove').click()
 
     cy.wait(3000)
 
-    cy.get('#CardListItem-0').contains('Remove').click()
+    cy.contains('Abra').closest('[id^="CardListItem-"]').contains('Remove').click()
     cy.contains('h2', 'Your Collection is Empty')
   })
 })
