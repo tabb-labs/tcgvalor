@@ -6,12 +6,13 @@ import CardBlueprintMarketValueRepo from '../repository/CardBlueprintMarketValue
 import { ENV } from '../env'
 import { asyncHandler } from '../http/asyncHandler'
 
+const cardBlueprintMarketValueRepo = new CardBlueprintMarketValueRepo()
 const StoreController = Router()
 
 StoreController.get(
   '/status',
   asyncHandler(async (_, res) => {
-    const pricesLastUpdatedAt = await new CardBlueprintMarketValueRepo().getLatestFetchedAt()
+    const pricesLastUpdatedAt = await cardBlueprintMarketValueRepo.getLatestFetchedAt()
     const storeStatus: StoreStatusDto = {
       expansionsLastUpdatedDateString: Store.expansions.getLastUpdated()?.toISOString() ?? null,
       pricesLastUpdatedDateString: pricesLastUpdatedAt?.toISOString() ?? null,

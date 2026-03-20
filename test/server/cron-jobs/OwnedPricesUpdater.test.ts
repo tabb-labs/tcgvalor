@@ -64,6 +64,7 @@ describe('OwnedPricesUpdater', () => {
 
     it('should not refresh when not expired', async () => {
       ownedPricesUpdater.refresh()
+      await jest.advanceTimersByTimeAsync(0)
       jest.clearAllMocks()
 
       ownedPricesUpdater.start({ minutes: 5 }, 30_000)

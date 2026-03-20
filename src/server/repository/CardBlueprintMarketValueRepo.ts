@@ -17,7 +17,7 @@ export interface ICardBlueprintMarketValueRepo {
 class CardBlueprintMarketValueRepo implements ICardBlueprintMarketValueRepo {
   upsertMany = async (values: MarketValueEntry[]): Promise<void> => {
     const now = new Date()
-    await Promise.all(
+    await prisma.$transaction(
       values.map(({ cardBlueprintId, medianCents, listingCount }) =>
         prisma.cardBlueprintMarketValue.upsert({
           where: { cardBlueprintId },

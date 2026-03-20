@@ -29,8 +29,10 @@ class PricesForExpansionUseCase implements IPricesForExpansionUseCase {
       if (hasPrices) return
     }
 
-    const priceMap = await this.fetchPrices(cardTraderExpansionId)
-    const blueprints = await this.cardBlueprintPokemonRepo.listByExpansion(cardTraderExpansionId)
+    const [priceMap, blueprints] = await Promise.all([
+      this.fetchPrices(cardTraderExpansionId),
+      this.cardBlueprintPokemonRepo.listByExpansion(cardTraderExpansionId),
+    ])
     const values = this.buildUpsertValues(blueprints, priceMap)
 
     if (values.length === 0) {

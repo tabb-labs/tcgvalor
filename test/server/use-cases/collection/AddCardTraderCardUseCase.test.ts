@@ -161,8 +161,7 @@ describe('Add Card Trader Card UseCase', () => {
 
     expansionPokemonRepo_FAKE.FIND.mockResolvedValue({ ...EXPANSION_ENTITY_ORIGINAL, id: EXPANSION_ID })
     cardTraderClient_FAKE.GET_POKEMON_BLUEPRINTS.mockResolvedValue([targetBlueprint, existingBlueprint])
-    cardBlueprintPokemonRepo_FAKE.FIND.mockResolvedValueOnce(null) // target doesn't exist
-      .mockResolvedValue({ id: 999 }) // remaining blueprints already exist
+    cardBlueprintPokemonRepo_FAKE.FIND.mockResolvedValueOnce(null).mockResolvedValue({ id: 999 })
     cardBlueprintPokemonRepo_FAKE.CREATE.mockResolvedValue(CARD_BLUEPRINT_ID)
 
     await useCase.call(USER_ID, CARD_TRADER_BLUEPRINT_ID, CARD_TRADER_EXPANSION_ID, CONDITION)

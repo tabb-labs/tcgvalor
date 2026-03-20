@@ -25,7 +25,6 @@ class OwnedPricesUpdater implements ICronJob {
   }
 
   refresh = () => {
-    this.lastRun = new Date()
     this.cardBlueprintMarketValueRepo
       .listOwnedCardTraderExpansionIds()
       .then((expansionIds) => {
@@ -38,7 +37,10 @@ class OwnedPricesUpdater implements ICronJob {
           )
         )
       })
-      .then(() => Logger.info('OwnedPricesUpdater: done'))
+      .then(() => {
+        this.lastRun = new Date()
+        Logger.info('OwnedPricesUpdater: done')
+      })
       .catch((e) => Logger.error(`OwnedPricesUpdater: ${e}`))
   }
 }
