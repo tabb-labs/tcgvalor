@@ -78,9 +78,9 @@ const CardList = ({ cardsDto, refreshCards, isEditable = true }: CardListProps) 
       )}
 
       <CardContainer>
-        {filteredCardsDto.map((cardDto, i) => (
+        {filteredCardsDto.map((cardDto) => (
           <CardItem
-            id={`CardListItem-${i}`}
+            id={`CardListItem-${cardDto.blueprintId}`}
             key={cardDto.blueprintId}
             cardDto={cardDto}
             isEditable={isEditable}

@@ -32,16 +32,19 @@ describe('e2e', () => {
 
     // Add/Remove card
     cy.get('#CardListSearch').type('abra')
-    cy.get('#CardListItem-0').contains('Abra')
-    cy.get('#CardListItem-0').contains('Owned: 0')
-    cy.get('#CardListItem-0').contains('Add').click()
-    cy.get('#CardListItem-0').contains('Owned: 1')
-    cy.get('#CardListItem-0').contains('Remove').click()
-
-    cy.get('#CardListItem-0').contains('Owned: 0')
-    cy.get('#CardListItem-0').contains('Add').click()
-
-    cy.get('#CardListItem-0').contains('Owned: 1')
+    cy.get('[id^="CardListItem-"]')
+      .first()
+      .then(($card) => {
+        const id = $card.attr('id')!
+        cy.get(`#${id}`).contains('Abra')
+        cy.get(`#${id}`).contains('Owned: 0')
+        cy.get(`#${id}`).contains('Add').click()
+        cy.get(`#${id}`).contains('Owned: 1')
+        cy.get(`#${id}`).contains('Remove').click()
+        cy.get(`#${id}`).contains('Owned: 0')
+        cy.get(`#${id}`).contains('Add').click()
+        cy.get(`#${id}`).contains('Owned: 1')
+      })
 
     // Add card in collection and check median price
     cy.get('#NavCollection').click()
@@ -52,11 +55,14 @@ describe('e2e', () => {
 
     cy.contains('Abra')
       .closest('[id^="CardListItem-"]')
-      .within(() => {
-        cy.contains('Owned: 1')
-        cy.contains('Add').click()
+      .then(($card) => {
+        const id = $card.attr('id')!
+        cy.get(`#${id}`).within(() => {
+          cy.contains('Owned: 1')
+          cy.contains('Add').click()
+        })
+        cy.get(`#${id}`).contains('Owned: 2')
       })
-    cy.contains('Abra').closest('[id^="CardListItem-"]').contains('Owned: 2')
 
     cy.get('#CollectionTotalMedianValue')
       .invoke('text')
@@ -73,11 +79,16 @@ describe('e2e', () => {
 
     // Add another Card
     cy.get('#CardListSearch').type('Torterra ex')
-    cy.get('#CardListItem-0').within(() => {
-      cy.contains('Owned: 0')
-      cy.contains('Add').click()
-    })
-    cy.get('#CardListItem-0').contains('Owned: 1')
+    cy.get('[id^="CardListItem-"]')
+      .first()
+      .then(($card) => {
+        const id = $card.attr('id')!
+        cy.get(`#${id}`).within(() => {
+          cy.contains('Owned: 0')
+          cy.contains('Add').click()
+        })
+        cy.get(`#${id}`).contains('Owned: 1')
+      })
 
     // Verify amounts in collection
     cy.get('#NavCollection').click()
