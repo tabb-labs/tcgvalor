@@ -46,5 +46,6 @@ export const makeUserCardWithBlueprintMock = ({
         updatedAt: new Date(),
       },
     ],
+    marketValue: null,
   },
 })

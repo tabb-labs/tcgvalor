@@ -4,11 +4,12 @@ import AddCardTraderCardUseCase from '../use-cases/collection/AddCardTraderCardU
 import UserCardRepo from '../repository/UserCardRepo'
 import ExpansionPokemonRepo from '../repository/ExpansionPokemonRepo'
 import CardBlueprintPokemonRepo from '../repository/CardBlueprintPokemonRepo'
+import CardBlueprintMarketValueRepo from '../repository/CardBlueprintMarketValueRepo'
 import CardTraderClient from '../clients/CardTrader/CardTraderClient'
 import GetCollectionUseCase from '../use-cases/collection/GetCollectionUseCase'
-import Store from '../StoreRegistry'
 import GetShareCollectionUseCase from '../use-cases/collection/GetShareCollectionUseCase'
 import CollectionFactory from '../domain/CollectionFactory'
+import PricesForExpansionUseCase from '../use-cases/price/PricesForExpansionUseCase'
 import { prisma } from '../../../prisma/prismaClient'
 import { asyncHandler } from '../http/asyncHandler'
 import { requiresAuth } from 'express-openid-connect'
@@ -19,7 +20,7 @@ CollectionController.get(
   '/',
   requiresAuth(),
   asyncHandler(async (req, res) => {
-    const collectionFactory = new CollectionFactory(new UserCardRepo(), Store.blueprintValues.getState())
+    const collectionFactory = new CollectionFactory(new UserCardRepo())
     const getCollectionUseCase = new GetCollectionUseCase(collectionFactory)
     const result = await getCollectionUseCase.call(req.currentUser!.id)
     if (result.isSuccess()) {
@@ -34,7 +35,7 @@ CollectionController.get(
   '/:userId',
   asyncHandler(async (req, res) => {
     const userId = Number(req.params.userId)
-    const collectionFactory = new CollectionFactory(new UserCardRepo(), Store.blueprintValues.getState())
+    const collectionFactory = new CollectionFactory(new UserCardRepo())
     const getShareCollectionUseCase = new GetShareCollectionUseCase(prisma, collectionFactory)
     const result = await getShareCollectionUseCase.call(userId)
     if (result.isSuccess()) {
@@ -54,11 +55,14 @@ CollectionController.post(
       res.sendError({ errors: parsed.error.issues.map((issue) => issue.message), status: 400 })
       return
     }
+    const cardTraderClient = new CardTraderClient()
+    const cardBlueprintPokemonRepo = new CardBlueprintPokemonRepo()
     const addCardTraderCardUseCase = new AddCardTraderCardUseCase(
       prisma,
-      new CardTraderClient(),
+      cardTraderClient,
       new ExpansionPokemonRepo(),
-      new CardBlueprintPokemonRepo()
+      cardBlueprintPokemonRepo,
+      new PricesForExpansionUseCase(cardTraderClient, cardBlueprintPokemonRepo, new CardBlueprintMarketValueRepo())
     )
     const result = await addCardTraderCardUseCase.call(
       req.currentUser!.id,

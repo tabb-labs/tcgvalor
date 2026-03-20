@@ -23,7 +23,12 @@ describe('Cron Job Registry', () => {
   it('should start with dev settings', () => {
     ENV.ID = 'development'
     cronJobRegistry.start()
-    expect(pricesUpdater_FAKE.START).toHaveBeenCalledWith({ minutes: 2 }, 30_000)
-    expect(expansionUpdater_FAKE.START).toHaveBeenCalledWith({ seconds: 45 }, 30_000)
+    expect(pricesUpdater_FAKE.START).toHaveBeenCalledWith({ hours: 1 }, 1_800_000)
+    expect(expansionUpdater_FAKE.START).toHaveBeenCalledWith({ hours: 1 }, 1_800_000)
+  })
+
+  it('should call refresh on pricesUpdater when initialLoad is called', () => {
+    cronJobRegistry.initialLoad()
+    expect(pricesUpdater_FAKE.REFRESH).toHaveBeenCalled()
   })
 })

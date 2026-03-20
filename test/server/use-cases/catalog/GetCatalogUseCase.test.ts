@@ -4,7 +4,6 @@ import PokemonExpansionFactory_FAKE from '../../__FAKES__/PokemonExpansionFactor
 import { makePokemonExpansionMock } from '../../__MOCKS__/pokemonExpansion.mock'
 import PokemonCardFactory_FAKE from '../../__FAKES__/PokemonCardFactory.fake'
 import { makePokemonCardMock } from '../../__MOCKS__/pokemonCard.mock'
-
 describe('Get Catalog UseCase', () => {
   let getCatalogUseCase: GetCatalogUseCase
   let pokemonExpansionFactory_FAKE: PokemonExpansionFactory_FAKE

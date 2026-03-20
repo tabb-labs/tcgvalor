@@ -5,8 +5,10 @@ import CardTraderClient from '../clients/CardTrader/CardTraderClient'
 import Store from '../StoreRegistry'
 import ExpansionPokemonRepo from '../repository/ExpansionPokemonRepo'
 import CardBlueprintPokemonRepo from '../repository/CardBlueprintPokemonRepo'
+import CardBlueprintMarketValueRepo from '../repository/CardBlueprintMarketValueRepo'
 import PokemonCardFactory from '../domain/PokemonCardFactory'
 import PokemonExpansionFactory from '../domain/PokemonExpansionFactory'
+import GetBlueprintValueUseCase from '../use-cases/price/GetBlueprintValueUseCase'
 import { asyncHandler } from '../http/asyncHandler'
 
 const CatalogController = Router()
@@ -24,10 +26,12 @@ CatalogController.get(
       return
     }
 
+    const cardTraderClient = new CardTraderClient()
     const pokemonCardFactory = new PokemonCardFactory(
       new CardBlueprintPokemonRepo(),
-      new CardTraderClient(),
-      Store.blueprintValues.getState(),
+      cardTraderClient,
+      new CardBlueprintMarketValueRepo(),
+      new GetBlueprintValueUseCase(cardTraderClient),
       new UserCardRepo()
     )
     const pokemonExpansionFactory = new PokemonExpansionFactory(new ExpansionPokemonRepo())

@@ -79,6 +79,7 @@ model CardBlueprint {
   expansion              Expansion                  @relation(fields: [expansionId], references: [id])
   platformLinks          CardBlueprintPlatformLink[]
   pokemonCardBlueprint   CardBlueprintPokemon?
+  marketValue            CardBlueprintMarketValue?
 
   userCards               UserCard[]
 
@@ -150,6 +151,19 @@ model CardBlueprintPlatformLink {
 
   @@unique([cardBlueprintId, platform])
   @@map("card_blueprint_platform_link")
+}
+
+model CardBlueprintMarketValue {
+  id                     Int           @id @default(autoincrement())
+  cardBlueprintId        Int           @unique @map("card_blueprint_id")
+  medianMarketValueCents Int           @map("median_market_value_cents")
+  listingCount           Int           @map("listing_count")
+  fetchedAt              DateTime      @map("fetched_at")
+  createdAt              DateTime      @default(now()) @map("created_at")
+  updatedAt              DateTime      @updatedAt @map("updated_at")
+  cardBlueprint          CardBlueprint @relation(fields: [cardBlueprintId], references: [id])
+
+  @@map("card_blueprint_market_value")
 }
 
 model ExpansionPlatformLink {

@@ -3,6 +3,7 @@ import AddCardTraderCardUseCase from '../../../../src/server/use-cases/collectio
 import CardTraderClient_FAKE from '../../__FAKES__/CardTraderClient.fake'
 import ExpansionPokemonRepo_FAKE from '../../__FAKES__/ExpansionPokemonRepo.fake'
 import CardBlueprintPokemonRepo_FAKE from '../../__FAKES__/CardBlueprintPokemonRepo.fake'
+import PricesForExpansion_FAKE from '../../__FAKES__/PricesForExpansion.fake'
 import { makePrismaClientMock } from '../../__MOCKS__/prismaClient.mock'
 import { EXPANSION_ENTITY_ORIGINAL } from '../../__MOCKS__/expansionEntity.mock'
 import { makeCardBlueprintMock } from '../../__MOCKS__/cardBlueprint.mock'
@@ -18,6 +19,7 @@ describe('Add Card Trader Card UseCase', () => {
   let cardTraderClient_FAKE: CardTraderClient_FAKE
   let expansionPokemonRepo_FAKE: ExpansionPokemonRepo_FAKE
   let cardBlueprintPokemonRepo_FAKE: CardBlueprintPokemonRepo_FAKE
+  let pricesForExpansion_FAKE: PricesForExpansion_FAKE
 
   const USER_ID = 1
   const CARD_TRADER_BLUEPRINT_ID = 100
@@ -31,11 +33,13 @@ describe('Add Card Trader Card UseCase', () => {
     cardTraderClient_FAKE = new CardTraderClient_FAKE()
     expansionPokemonRepo_FAKE = new ExpansionPokemonRepo_FAKE()
     cardBlueprintPokemonRepo_FAKE = new CardBlueprintPokemonRepo_FAKE()
+    pricesForExpansion_FAKE = new PricesForExpansion_FAKE()
     useCase = new AddCardTraderCardUseCase(
       mockPrisma,
       cardTraderClient_FAKE,
       expansionPokemonRepo_FAKE,
-      cardBlueprintPokemonRepo_FAKE
+      cardBlueprintPokemonRepo_FAKE,
+      pricesForExpansion_FAKE
     )
   })
 
@@ -157,14 +161,22 @@ describe('Add Card Trader Card UseCase', () => {
 
     expansionPokemonRepo_FAKE.FIND.mockResolvedValue({ ...EXPANSION_ENTITY_ORIGINAL, id: EXPANSION_ID })
     cardTraderClient_FAKE.GET_POKEMON_BLUEPRINTS.mockResolvedValue([targetBlueprint, existingBlueprint])
-    cardBlueprintPokemonRepo_FAKE.FIND.mockResolvedValueOnce(null) // target doesn't exist
-      .mockResolvedValue({ id: 999 }) // remaining blueprints already exist
+    cardBlueprintPokemonRepo_FAKE.FIND.mockResolvedValueOnce(null).mockResolvedValue({ id: 999 })
     cardBlueprintPokemonRepo_FAKE.CREATE.mockResolvedValue(CARD_BLUEPRINT_ID)
 
     await useCase.call(USER_ID, CARD_TRADER_BLUEPRINT_ID, CARD_TRADER_EXPANSION_ID, CONDITION)
     await flushPromises()
 
     expect(cardBlueprintPokemonRepo_FAKE.CREATE).toHaveBeenCalledTimes(1)
+  })
+
+  it('should trigger price fetch with skipIfExists after adding a card', async () => {
+    setupHappyPath()
+
+    await useCase.call(USER_ID, CARD_TRADER_BLUEPRINT_ID, CARD_TRADER_EXPANSION_ID, CONDITION)
+    await flushPromises()
+
+    expect(pricesForExpansion_FAKE.CALL).toHaveBeenCalledWith(CARD_TRADER_EXPANSION_ID, { skipIfExists: true })
   })
 
   it('should throw when requested blueprint is not found in card trader response', async () => {

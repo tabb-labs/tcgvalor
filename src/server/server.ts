@@ -52,4 +52,5 @@ Store.init()
     Logger.error(e)
   })
 
+CronJobs.initialLoad()
 CronJobs.start()

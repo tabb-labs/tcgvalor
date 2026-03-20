@@ -15,11 +15,11 @@ class ExpansionsUpdater implements ICronJob {
     setInterval(() => {
       const lastDate = this.expansionsStore.getLastUpdated()
       const expired = isExpired({ expiresIn, lastDate, now: new Date() })
-      if (expired) this.refreshStoreWhenTimeHasPast()
+      if (expired) this.refresh()
     }, interval)
   }
 
-  private refreshStoreWhenTimeHasPast = () => {
+  refresh = () => {
     this.expansionsStore
       .refreshStore()
       .then(() => Logger.info('expansion store refreshed'))

@@ -3,6 +3,7 @@ import { ICardTraderClient } from '../../clients/CardTrader/CardTraderClient'
 import { IExpansionPokemonRepo } from '../../repository/ExpansionPokemonRepo'
 import { ICardBlueprintPokemonRepo } from '../../repository/CardBlueprintPokemonRepo'
 import { CardTraderBlueprintDto } from '../../clients/CardTrader/parseBlueprints'
+import { IPricesForExpansionUseCase } from '../price/PricesForExpansionUseCase'
 import Logger from '../../logger'
 import { Result } from '@use-cases/Result'
 
@@ -20,17 +21,20 @@ class AddCardTraderCardUseCase implements IAddCardTraderCardUseCase {
   private readonly cardTraderClient: ICardTraderClient
   private readonly expansionPokemonRepo: IExpansionPokemonRepo
   private readonly cardBlueprintPokemonRepo: ICardBlueprintPokemonRepo
+  private readonly pricesForExpansionUseCase: IPricesForExpansionUseCase
 
   constructor(
     prisma: PrismaClient,
     cardTraderClient: ICardTraderClient,
     expansionPokemonRepo: IExpansionPokemonRepo,
-    cardBlueprintPokemonRepo: ICardBlueprintPokemonRepo
+    cardBlueprintPokemonRepo: ICardBlueprintPokemonRepo,
+    pricesForExpansionUseCase: IPricesForExpansionUseCase
   ) {
     this.prisma = prisma
     this.cardTraderClient = cardTraderClient
     this.expansionPokemonRepo = expansionPokemonRepo
     this.cardBlueprintPokemonRepo = cardBlueprintPokemonRepo
+    this.pricesForExpansionUseCase = pricesForExpansionUseCase
   }
 
   call = async (
@@ -49,6 +53,11 @@ class AddCardTraderCardUseCase implements IAddCardTraderCardUseCase {
         condition,
       },
     })
+
+    this.pricesForExpansionUseCase.call(cardTraderExpansionId, { skipIfExists: true }).catch((e) => {
+      Logger.error(`AddCardTraderCardUseCase: failed to store prices for expansion ${cardTraderExpansionId}: ${e}`)
+    })
+
     return Result.success(true)
   }
 
