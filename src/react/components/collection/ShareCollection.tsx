@@ -6,6 +6,7 @@ import CollectionDetails from './CollectionDetails'
 import { CenterContent } from '../base/layout/CenterContent'
 import Spinner from '../base/Spinner'
 import ShareCollectionNotFound from './ShareCollectionNotFound'
+import CollectionNoResults from './CollectionNoResults'
 import { PATH_VALUES } from '../../router/pathValues'
 import { useProfile } from '../../providers/ProfileProvider'
 import InternalTextLink from '../base/text-link/InternalTextLink'
@@ -53,6 +54,7 @@ type ShareCollectionViewProps = {
   name: string | undefined
   showUserFoundView: boolean
   showNoUserFoundView: boolean
+  showNoResults: boolean
   showLoading: boolean
   showEditLink: boolean
 }
@@ -65,11 +67,12 @@ const ShareCollectionView = ({
   name,
   showUserFoundView,
   showNoUserFoundView,
+  showNoResults,
   showLoading,
   showEditLink,
 }: ShareCollectionViewProps) => (
   <>
-    {showUserFoundView && (
+    {(showUserFoundView || showNoResults) && (
       <>
         <MetaRow>
           {meta && <CollectionDetails collectionMeta={meta} nameTag={`${name}'s`} />}
@@ -101,7 +104,13 @@ const ShareCollectionView = ({
           </Controls>
         </ControlsContainer>
 
-        <CardList cardsDto={cards} isEditable={false} />
+        {showNoResults && (
+          <CenterContent>
+            <CollectionNoResults />
+          </CenterContent>
+        )}
+
+        {showUserFoundView && <CardList cardsDto={cards} isEditable={false} />}
 
         {pagination && (
           <PaginationContainer>
@@ -134,7 +143,9 @@ export const useInShareCollection = () => {
 
   const { data: collection, isLoading } = useShareCollection(userId, params)
 
-  const collectionFound = !!collection && collection.cards.length > 0
+  const hasCards = (collection?.cards.length ?? 0) > 0
+  const totalCards = collection?.meta.cardsInCollection ?? 0
+  const userExists = !!collection
 
   return {
     collectionParams,
@@ -142,8 +153,9 @@ export const useInShareCollection = () => {
     meta: collection?.meta,
     pagination: collection?.pagination,
     name: collection?.name,
-    showUserFoundView: collectionFound && !isLoading,
-    showNoUserFoundView: !collectionFound && !isLoading,
+    showUserFoundView: !isLoading && userExists && hasCards,
+    showNoUserFoundView: !isLoading && (!userExists || totalCards === 0),
+    showNoResults: !isLoading && userExists && totalCards > 0 && !hasCards,
     showLoading: isLoading,
     showEditLink: Number(userId) === profile?.id,
   }

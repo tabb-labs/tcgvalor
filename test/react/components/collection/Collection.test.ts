@@ -131,7 +131,7 @@ describe('Use In Collection', () => {
     USE_USER_CARDS.mockReturnValue({
       ...USE_USER_CARDS_RETURN,
       isLoading: false,
-      data: COLLECTION_DTO,
+      data: { ...COLLECTION_DTO, meta: { ...COLLECTION_META_DTO, cardsInCollection: 2 } },
     })
 
     const { result } = renderHook(useInCollection)

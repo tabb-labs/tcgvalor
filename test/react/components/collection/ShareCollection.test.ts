@@ -44,12 +44,12 @@ describe('Use In Share Collection', () => {
   it('should return cards and details', () => {
     USE_SHARE_COLLECTION.mockReturnValue({
       ...USE_SHARE_COLLECTION_RETURN,
-      data: { ...SHARE_COLLECTION_DTO, cards: CARDS },
+      data: { ...SHARE_COLLECTION_DTO, cards: CARDS, meta: { ...COLLECTION_META_DTO, cardsInCollection: 2 } },
     })
     const { result } = renderHook(useInShareCollection)
 
     expect(result.current.cards).toEqual(CARDS)
-    expect(result.current.meta).toEqual(COLLECTION_META_DTO)
+    expect(result.current.meta).toEqual({ ...COLLECTION_META_DTO, cardsInCollection: 2 })
   })
 
   it('should use router param for get share data', () => {
@@ -77,7 +77,7 @@ describe('Use In Share Collection', () => {
 
     USE_SHARE_COLLECTION.mockReturnValue({
       ...USE_SHARE_COLLECTION_RETURN,
-      data: { ...SHARE_COLLECTION_DTO, cards: CARDS },
+      data: { ...SHARE_COLLECTION_DTO, cards: CARDS, meta: { ...COLLECTION_META_DTO, cardsInCollection: 2 } },
     })
 
     const { result } = renderHook(useInShareCollection)
@@ -110,7 +110,7 @@ describe('Use In Share Collection', () => {
 
     USE_SHARE_COLLECTION.mockReturnValue({
       ...USE_SHARE_COLLECTION_RETURN,
-      data: { ...SHARE_COLLECTION_DTO, cards: [] },
+      data: { ...SHARE_COLLECTION_DTO, cards: [], meta: { ...COLLECTION_META_DTO, cardsInCollection: 0 } },
     })
 
     const { result } = renderHook(useInShareCollection)

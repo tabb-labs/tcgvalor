@@ -5,6 +5,7 @@ import CollectionDetails from './CollectionDetails'
 import { useProfile } from '../../providers/ProfileProvider'
 import CollectionNotLoggedIn from './CollectionNotLoggedIn'
 import CollectionNoItems from './CollectionNoItems'
+import CollectionNoResults from './CollectionNoResults'
 import Spinner from '../base/Spinner'
 import { CenterContent } from '../base/layout/CenterContent'
 import InternalTextLink from '../base/text-link/InternalTextLink'
@@ -52,6 +53,7 @@ type CollectionViewProps = {
   shareLinkPath: string
   showNotLoggedIn: boolean
   showNoCollection: boolean
+  showNoResults: boolean
   showCollection: boolean
   showLoading: boolean
   copyShareLinkToClipboard: () => Promise<void>
@@ -65,6 +67,7 @@ const CollectionView = ({
   shareLinkPath,
   showNotLoggedIn,
   showNoCollection,
+  showNoResults,
   showCollection,
   showLoading,
   copyShareLinkToClipboard,
@@ -82,7 +85,7 @@ const CollectionView = ({
       </CenterContent>
     )}
 
-    {(showCollection || showNoCollection) && (
+    {(showCollection || showNoCollection || showNoResults) && (
       <>
         {meta && (
           <MetaRow>
@@ -121,6 +124,12 @@ const CollectionView = ({
           </CenterContent>
         )}
 
+        {showNoResults && (
+          <CenterContent>
+            <CollectionNoResults />
+          </CenterContent>
+        )}
+
         {showCollection && <CardList {...cardListProps} />}
 
         {pagination && (
@@ -150,8 +159,9 @@ export const useInCollection = () => {
     await navigator.clipboard.writeText(`${location.origin}${shareLinkPath}`)
   }
 
-  const isLoading = isLoadingProfile || isLoadingCollection
+  const isInitialLoad = isLoadingProfile || (isLoadingCollection && !collectionDto)
   const hasCards = (collectionDto?.cards.length ?? 0) > 0
+  const totalCards = collectionDto?.meta.cardsInCollection ?? 0
 
   return {
     collectionParams,
@@ -159,10 +169,11 @@ export const useInCollection = () => {
     meta: collectionDto?.meta,
     pagination: collectionDto?.pagination,
     shareLinkPath,
-    showNotLoggedIn: !isLoading && !isLoggedIn,
-    showNoCollection: !isLoading && !hasCards && isLoggedIn,
-    showCollection: !isLoading && hasCards && isLoggedIn,
-    showLoading: isLoading,
+    showNotLoggedIn: !isInitialLoad && !isLoggedIn,
+    showNoCollection: !isInitialLoad && isLoggedIn && totalCards === 0,
+    showNoResults: !isInitialLoad && isLoggedIn && totalCards > 0 && !hasCards,
+    showCollection: !isInitialLoad && hasCards && isLoggedIn,
+    showLoading: isInitialLoad,
     copyShareLinkToClipboard,
   }
 }
