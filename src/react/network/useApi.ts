@@ -47,7 +47,7 @@ export const useApiController = <T>({ path, shouldMakeRequest = true }: UseApiAr
 export const useApi = <T>(args: UseApiArgs): UseApiReturn<T> => {
   const { data, isLoading, errors, makeRequest } = useApiController<T>(args)
 
-  useEffect(makeRequest, [args.shouldMakeRequest])
+  useEffect(makeRequest, [args.shouldMakeRequest, args.path])
 
   return { data, isLoading, errors, refresh: makeRequest }
 }

@@ -7,14 +7,17 @@ import { UseApiReturn } from '../../../../src/react/network/useApi'
 import { CollectionDto } from '@core/network-types/collection'
 import * as ProfileProviderModule from '../../../../src/react/providers/ProfileProvider'
 import { PROFILE_CONTEXT_TYPE } from '../../__MOCKS__/profileContextType.mock'
-import { COLLECTION_META_DTO } from '../../../core/__MOCKS__/collection.mock'
+import { COLLECTION_META_DTO, PAGINATION_DTO } from '../../../core/__MOCKS__/collection.mock'
 import { PROFILE_DTO } from '../../../core/__MOCKS__/profile.mock'
+import * as UseRouterModule from '../../../../src/react/router/useRouter'
+import { USE_ROUTER_RETURN } from '../../__MOCKS__/useRouterReturn.mock'
 
 const CARDS = [CARD_DTO, CARD_DTO]
 
 const COLLECTION_DTO: CollectionDto = {
   cards: CARDS,
   meta: COLLECTION_META_DTO,
+  pagination: PAGINATION_DTO,
 }
 
 const REFRESH = jest.fn()
@@ -30,6 +33,9 @@ USE_USER_CARDS.mockReturnValue(USE_USER_CARDS_RETURN)
 
 const USE_PROFILE = jest.spyOn(ProfileProviderModule, 'useProfile')
 USE_PROFILE.mockReturnValue(PROFILE_CONTEXT_TYPE)
+
+const USE_ROUTER = jest.spyOn(UseRouterModule, 'useRouter')
+USE_ROUTER.mockReturnValue(USE_ROUTER_RETURN)
 
 beforeEach(jest.clearAllMocks)
 
