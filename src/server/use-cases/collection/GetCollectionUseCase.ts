@@ -1,5 +1,5 @@
 import { Result } from '@use-cases/Result'
-import { CollectionDto } from '@core/network-types/collection'
+import { CollectionDto, CollectionQueryParams } from '@core/network-types/collection'
 import { ICollectionFactory } from '../../domain/CollectionFactory'
 
 class GetCollectionUseCase {
@@ -9,13 +9,9 @@ class GetCollectionUseCase {
     this.collectionFactory = collectionFactory
   }
 
-  call = async (userId: number): Promise<Result<CollectionDto>> => {
-    const collection = await this.collectionFactory.make(userId)
-
-    return Result.success({
-      cards: collection.cards(),
-      meta: collection.details(),
-    })
+  call = async (userId: number, params: CollectionQueryParams): Promise<Result<CollectionDto>> => {
+    const result = await this.collectionFactory.makePaginated(userId, params)
+    return Result.success(result)
   }
 }
 

@@ -38,6 +38,8 @@ const USE_ROUTER = jest.spyOn(UseRouterClient, 'useRouter')
 USE_ROUTER.mockReturnValue({
   navigateTo: NAVIGATE_TO,
   getParam: GET_PARAM,
+  getSearchParam: () => null,
+  setSearchParams: () => {},
   hostname: '',
   pathname: '',
 })

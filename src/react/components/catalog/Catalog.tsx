@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import { SearchWrapper as SearchWrapperBase, SearchIcon, SearchInput } from '../base/SearchBar'
 import { fetchCatalog } from '../../network/catalogClient'
 import Autocomplete, { useWithAutocomplete } from '../base/form/Autocomplete'
 import React, { useEffect, useState } from 'react'
@@ -17,16 +18,24 @@ import Spinner from '../base/Spinner'
 import { CenterContent } from '../base/layout/CenterContent'
 import CatalogNoCards from './CatalogNoCards'
 import CatalogNoExpansionSelected from './CatalogNoExpansionSelected'
+import CollectionNoResults from '../collection/CollectionNoResults'
 import { StickyScrollNavBar, ScrollToTopButton, ExpansionLogo } from '../sticky-scroll'
 
 const Container = styled.div`
   margin-top: 1rem;
 `
 
+const SearchWrapper = styled(SearchWrapperBase)`
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+`
+
 const Catalog = () => {
   const {
     autocompleteBind,
     cardsDto,
+    cardSearch,
+    onCardSearchChange,
     expansionDetailsDto,
     expansionsLoadedEffect,
     fetchExpansionDetailsAndCardsEffect,
@@ -64,6 +73,29 @@ const Catalog = () => {
         </CenterContent>
       )}
 
+      {expansionDetailsDto && (
+        <SearchWrapper>
+          <SearchIcon>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M10.5 10.5L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </SearchIcon>
+          <SearchInput
+            id="CardListSearch"
+            placeholder="Search cards..."
+            value={cardSearch}
+            onChange={(e) => onCardSearchChange(e.target.value)}
+          />
+        </SearchWrapper>
+      )}
+
+      {cardSearch && cardsDto.length === 0 && !showLoading && (
+        <CenterContent>
+          <CollectionNoResults />
+        </CenterContent>
+      )}
+
       <CardList cardsDto={cardsDto} refreshCards={refreshCards} />
 
       <StickyScrollNavBar>
@@ -81,7 +113,8 @@ export const useInCatalog = () => {
   const { getParam, navigateTo } = useRouter()
   const expansionSlug = getParam('expansionSlug')
   const [selectedExpansion, setSelectedExpansion] = useState<CatalogDto | null>(null)
-  const [filteredCardsDto, setFilteredCardsDto] = useState<CardDto[]>([])
+  const [allCardsDto, setAllCardsDto] = useState<CardDto[]>([])
+  const [cardSearch, setCardSearch] = useState('')
 
   const fetchExpansionDetailsAndCards = () => {
     if (!expansionSlug) return
@@ -92,7 +125,7 @@ export const useInCatalog = () => {
       .then((res) => {
         setCatalogReturnUrl(selectedExpansion.slug)
         setSelectedExpansion(res.data)
-        setFilteredCardsDto(res.data?.cards.sort(sortByHighestMedian) ?? [])
+        setAllCardsDto(res.data?.cards.sort(sortByHighestMedian) ?? [])
       })
       .catch(() => showError('Failed to load catalog'))
       .finally(() => {
@@ -137,7 +170,8 @@ export const useInCatalog = () => {
 
   const fetchExpansionDetailsAndCardsEffect: UseEffectType = {
     effect: () => {
-      setFilteredCardsDto([])
+      setAllCardsDto([])
+      setCardSearch('')
       fetchExpansionDetailsAndCards()
     },
     deps: [expansionSlug, expansions],
@@ -148,12 +182,16 @@ export const useInCatalog = () => {
 
   return {
     autocompleteBind: { ...autocompleteBind, id: 'CatalogAutocomplete' },
-    cardsDto: filteredCardsDto,
+    cardsDto: cardSearch
+      ? allCardsDto.filter((c) => c.name.toLowerCase().includes(cardSearch.toLowerCase()))
+      : allCardsDto,
+    cardSearch,
+    onCardSearchChange: setCardSearch,
     expansionDetailsDto: selectedExpansion?.details || null,
     expansionsLoadedEffect,
     fetchExpansionDetailsAndCardsEffect,
     refreshCards: fetchExpansionDetailsAndCards,
-    showLoading: (isLoadingCatalog || pendingLoad) && filteredCardsDto.length === 0,
+    showLoading: (isLoadingCatalog || pendingLoad) && allCardsDto.length === 0,
     showNoCardsYet: !isLoadingCatalog && selectedExpansion?.cards.length === 0,
     showNoExpansionsSelected: !expansionSlug || slugNotFound,
   }

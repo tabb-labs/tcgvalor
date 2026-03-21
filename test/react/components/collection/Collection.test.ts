@@ -7,14 +7,17 @@ import { UseApiReturn } from '../../../../src/react/network/useApi'
 import { CollectionDto } from '@core/network-types/collection'
 import * as ProfileProviderModule from '../../../../src/react/providers/ProfileProvider'
 import { PROFILE_CONTEXT_TYPE } from '../../__MOCKS__/profileContextType.mock'
-import { COLLECTION_META_DTO } from '../../../core/__MOCKS__/collection.mock'
+import { COLLECTION_META_DTO, PAGINATION_DTO } from '../../../core/__MOCKS__/collection.mock'
 import { PROFILE_DTO } from '../../../core/__MOCKS__/profile.mock'
+import * as UseRouterModule from '../../../../src/react/router/useRouter'
+import { USE_ROUTER_RETURN } from '../../__MOCKS__/useRouterReturn.mock'
 
 const CARDS = [CARD_DTO, CARD_DTO]
 
 const COLLECTION_DTO: CollectionDto = {
   cards: CARDS,
   meta: COLLECTION_META_DTO,
+  pagination: PAGINATION_DTO,
 }
 
 const REFRESH = jest.fn()
@@ -30,6 +33,9 @@ USE_USER_CARDS.mockReturnValue(USE_USER_CARDS_RETURN)
 
 const USE_PROFILE = jest.spyOn(ProfileProviderModule, 'useProfile')
 USE_PROFILE.mockReturnValue(PROFILE_CONTEXT_TYPE)
+
+const USE_ROUTER = jest.spyOn(UseRouterModule, 'useRouter')
+USE_ROUTER.mockReturnValue(USE_ROUTER_RETURN)
 
 beforeEach(jest.clearAllMocks)
 
@@ -116,6 +122,24 @@ describe('Use In Collection', () => {
     expect(result.current.showCollection).toEqual(false)
   })
 
+  it('should show no results when search is active but collection has cards', () => {
+    USE_PROFILE.mockReturnValue({
+      ...PROFILE_CONTEXT_TYPE,
+      isLoggedIn: true,
+      isLoading: false,
+    })
+    USE_USER_CARDS.mockReturnValue({
+      ...USE_USER_CARDS_RETURN,
+      isLoading: false,
+      data: { ...COLLECTION_DTO, cards: [], meta: { ...COLLECTION_META_DTO, cardsInCollection: 5 } },
+    })
+
+    const { result } = renderHook(useInCollection)
+    expect(result.current.showNoResults).toEqual(true)
+    expect(result.current.showNoCollection).toEqual(false)
+    expect(result.current.showCollection).toEqual(false)
+  })
+
   it('should show collection', () => {
     USE_PROFILE.mockReturnValue({
       ...PROFILE_CONTEXT_TYPE,
@@ -125,7 +149,7 @@ describe('Use In Collection', () => {
     USE_USER_CARDS.mockReturnValue({
       ...USE_USER_CARDS_RETURN,
       isLoading: false,
-      data: COLLECTION_DTO,
+      data: { ...COLLECTION_DTO, meta: { ...COLLECTION_META_DTO, cardsInCollection: 2 } },
     })
 
     const { result } = renderHook(useInCollection)

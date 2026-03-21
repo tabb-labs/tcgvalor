@@ -8,7 +8,7 @@ import { USE_ROUTER_RETURN } from '../../__MOCKS__/useRouterReturn.mock'
 import { PROFILE_CONTEXT_TYPE } from '../../__MOCKS__/profileContextType.mock'
 import { ShareCollectionDto } from '@core/network-types/collection'
 import { UseApiReturn } from '../../../../src/react/network/useApi'
-import { COLLECTION_META_DTO } from '../../../core/__MOCKS__/collection.mock'
+import { COLLECTION_META_DTO, PAGINATION_DTO } from '../../../core/__MOCKS__/collection.mock'
 import { PROFILE_DTO } from '../../../core/__MOCKS__/profile.mock'
 
 const USE_PROFILE = jest.spyOn(ProfileProviderModule, 'useProfile')
@@ -27,6 +27,7 @@ const CARDS = [CARD_DTO, CARD_DTO]
 const SHARE_COLLECTION_DTO: ShareCollectionDto = {
   meta: COLLECTION_META_DTO,
   cards: [],
+  pagination: PAGINATION_DTO,
   name: '',
 }
 
@@ -43,12 +44,12 @@ describe('Use In Share Collection', () => {
   it('should return cards and details', () => {
     USE_SHARE_COLLECTION.mockReturnValue({
       ...USE_SHARE_COLLECTION_RETURN,
-      data: { ...SHARE_COLLECTION_DTO, cards: CARDS },
+      data: { ...SHARE_COLLECTION_DTO, cards: CARDS, meta: { ...COLLECTION_META_DTO, cardsInCollection: 2 } },
     })
     const { result } = renderHook(useInShareCollection)
 
     expect(result.current.cards).toEqual(CARDS)
-    expect(result.current.meta).toEqual(COLLECTION_META_DTO)
+    expect(result.current.meta).toEqual({ ...COLLECTION_META_DTO, cardsInCollection: 2 })
   })
 
   it('should use router param for get share data', () => {
@@ -65,7 +66,7 @@ describe('Use In Share Collection', () => {
 
     renderHook(useInShareCollection)
 
-    expect(USE_SHARE_COLLECTION).toHaveBeenCalledWith(USER_ID)
+    expect(USE_SHARE_COLLECTION).toHaveBeenCalledWith(USER_ID, expect.any(Object))
   })
 
   it('should show user found view when collection exists', () => {
@@ -76,7 +77,7 @@ describe('Use In Share Collection', () => {
 
     USE_SHARE_COLLECTION.mockReturnValue({
       ...USE_SHARE_COLLECTION_RETURN,
-      data: { ...SHARE_COLLECTION_DTO, cards: CARDS },
+      data: { ...SHARE_COLLECTION_DTO, cards: CARDS, meta: { ...COLLECTION_META_DTO, cardsInCollection: 2 } },
     })
 
     const { result } = renderHook(useInShareCollection)
@@ -109,7 +110,7 @@ describe('Use In Share Collection', () => {
 
     USE_SHARE_COLLECTION.mockReturnValue({
       ...USE_SHARE_COLLECTION_RETURN,
-      data: { ...SHARE_COLLECTION_DTO, cards: [] },
+      data: { ...SHARE_COLLECTION_DTO, cards: [], meta: { ...COLLECTION_META_DTO, cardsInCollection: 0 } },
     })
 
     const { result } = renderHook(useInShareCollection)
@@ -118,6 +119,19 @@ describe('Use In Share Collection', () => {
     expect(result.current.showEditLink).toBe(false)
     expect(result.current.showNoUserFoundView).toBe(true)
     expect(result.current.showLoading).toBe(false)
+  })
+
+  it('should show no results when search active but collection has cards', () => {
+    USE_SHARE_COLLECTION.mockReturnValue({
+      ...USE_SHARE_COLLECTION_RETURN,
+      data: { ...SHARE_COLLECTION_DTO, cards: [], meta: { ...COLLECTION_META_DTO, cardsInCollection: 5 } },
+    })
+
+    const { result } = renderHook(useInShareCollection)
+
+    expect(result.current.showNoResults).toBe(true)
+    expect(result.current.showNoUserFoundView).toBe(false)
+    expect(result.current.showUserFoundView).toBe(false)
   })
 
   it('should show edit link when collection belongs to logged in user ', () => {

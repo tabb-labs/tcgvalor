@@ -8,17 +8,17 @@ import {
 } from '../base/EmptyState'
 import { GoldWord } from '../base/GoldWord'
 
-const ShareCollectionNotFound = () => (
+const CollectionNoResults = () => (
   <EmptyStateWrapper $variant="dark" style={{ maxWidth: '480px' }}>
     <EmptyStateCardIcon />
     <EmptyStateDivider />
 
     <EmptyStateHeading>
-      Collection <GoldWord>Not Found</GoldWord>
+      No <GoldWord>Results</GoldWord> Found
     </EmptyStateHeading>
 
-    <EmptyStateBody>Try reaching out to the user who gave you their share link.</EmptyStateBody>
+    <EmptyStateBody>Try a different search term.</EmptyStateBody>
   </EmptyStateWrapper>
 )
 
-export default ShareCollectionNotFound
+export default CollectionNoResults

@@ -1,20 +1,13 @@
 import React from 'react'
 import { CollectionMetaDto } from '@core/network-types/collection'
-import styled, { css } from 'styled-components'
+import styled from 'styled-components'
 import { formatCentsToDollars } from '../../../core/currencyFormatter'
-import { tabLandAndUp } from '../../styles/Responsive'
 import { formatWithCommas } from '../../../core/numberFormatter'
 
 const Container = styled.div`
-  margin-top: 2rem;
-  gap: 1rem;
+  gap: 0.4rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-
-  ${tabLandAndUp(css`
-    align-items: center;
-  `)}
 `
 const Title = styled.h1`
   letter-spacing: 0.25rem;
