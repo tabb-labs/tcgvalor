@@ -121,6 +121,19 @@ describe('Use In Share Collection', () => {
     expect(result.current.showLoading).toBe(false)
   })
 
+  it('should show no results when search active but collection has cards', () => {
+    USE_SHARE_COLLECTION.mockReturnValue({
+      ...USE_SHARE_COLLECTION_RETURN,
+      data: { ...SHARE_COLLECTION_DTO, cards: [], meta: { ...COLLECTION_META_DTO, cardsInCollection: 5 } },
+    })
+
+    const { result } = renderHook(useInShareCollection)
+
+    expect(result.current.showNoResults).toBe(true)
+    expect(result.current.showNoUserFoundView).toBe(false)
+    expect(result.current.showUserFoundView).toBe(false)
+  })
+
   it('should show edit link when collection belongs to logged in user ', () => {
     const USER_ID = '123'
 

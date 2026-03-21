@@ -17,7 +17,6 @@ export type CardBlueprintWithUserCards = Prisma.CardBlueprintGetPayload<{
 
 export interface IUserCardRepo {
   listByExpansion: (userId: number, expansionId: number) => Promise<UserCardWithBlueprint[]>
-  listAll: (userId: number) => Promise<{ card: UserCardWithBlueprint; expansionId: number }[]>
   listPaginated: (
     userId: number,
     params: CollectionQueryParams
@@ -41,30 +40,6 @@ class UserCardRepo implements IUserCardRepo {
           include: { platformLinks: true, marketValue: true },
         },
       },
-    })
-  }
-
-  listAll = async (userId: number): Promise<{ card: UserCardWithBlueprint; expansionId: number }[]> => {
-    const userCards = await prisma.userCard.findMany({
-      where: { userId },
-      include: {
-        cardBlueprint: {
-          include: {
-            platformLinks: true,
-            marketValue: true,
-            expansion: { include: { platformLinks: true } },
-          },
-        },
-      },
-    })
-
-    return userCards.map((userCard) => {
-      const expansionLink = userCard.cardBlueprint.expansion.platformLinks.find((l) => l.platform === 'CARD_TRADER')
-      const card: UserCardWithBlueprint = userCard
-      return {
-        card,
-        expansionId: Number(expansionLink?.externalId ?? -1),
-      }
     })
   }
 

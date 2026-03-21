@@ -122,6 +122,24 @@ describe('Use In Collection', () => {
     expect(result.current.showCollection).toEqual(false)
   })
 
+  it('should show no results when search is active but collection has cards', () => {
+    USE_PROFILE.mockReturnValue({
+      ...PROFILE_CONTEXT_TYPE,
+      isLoggedIn: true,
+      isLoading: false,
+    })
+    USE_USER_CARDS.mockReturnValue({
+      ...USE_USER_CARDS_RETURN,
+      isLoading: false,
+      data: { ...COLLECTION_DTO, cards: [], meta: { ...COLLECTION_META_DTO, cardsInCollection: 5 } },
+    })
+
+    const { result } = renderHook(useInCollection)
+    expect(result.current.showNoResults).toEqual(true)
+    expect(result.current.showNoCollection).toEqual(false)
+    expect(result.current.showCollection).toEqual(false)
+  })
+
   it('should show collection', () => {
     USE_PROFILE.mockReturnValue({
       ...PROFILE_CONTEXT_TYPE,

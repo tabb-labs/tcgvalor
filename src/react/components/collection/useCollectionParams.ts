@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CollectionQueryParams, CollectionQueryParamsSchema } from '@core/network-types/collection'
 import { useRouter } from '../../router/useRouter'
 
@@ -27,10 +27,15 @@ export const useCollectionParams = (): CollectionParamsReturn => {
 
   const [searchInput, setSearchInput] = useState(params.search ?? '')
 
+  useEffect(() => {
+    setSearchInput(params.search ?? '')
+  }, [params.search])
+
   const buildParams = (overrides: Partial<CollectionQueryParams>): Record<string, string> => {
     const next = { ...params, ...overrides }
     const record: Record<string, string> = {
       page: String(next.page),
+      limit: String(next.limit),
       sortBy: next.sortBy,
       sortDir: next.sortDir,
     }
