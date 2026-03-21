@@ -10,9 +10,10 @@ import { CenterContent } from '../base/layout/CenterContent'
 import InternalTextLink from '../base/text-link/InternalTextLink'
 import { PATH_VALUES } from '../../router/pathValues'
 import { CollectionSearchBar, CollectionPagination, Controls, SortSelect, SORT_OPTIONS } from './CollectionControls'
-import { useCollectionParams } from './useCollectionParams'
+import { useCollectionParams, CollectionControls } from './useCollectionParams'
 import { Line } from '../base/Line'
 import styled from 'styled-components'
+import { CollectionMetaDto, PaginationDto } from '@core/network-types/collection'
 
 const ControlsContainer = styled.div`
   margin-top: 1.5rem;
@@ -39,85 +40,102 @@ const Links = styled.div`
 `
 
 const Collection = () => {
-  const {
-    meta,
-    cardListProps,
-    shareLinkPath,
-    showCollection,
-    showNotLoggedIn,
-    showNoCollection,
-    showLoading,
-    copyShareLinkToClipboard,
-    pagination,
-    searchInput,
-    sortValue,
-    onSearch,
-    onSortChange,
-    onPageChange,
-  } = useInCollection()
-
-  return (
-    <>
-      {showNotLoggedIn && (
-        <CenterContent>
-          <CollectionNotLoggedIn />
-        </CenterContent>
-      )}
-
-      {showLoading && (
-        <CenterContent>
-          <Spinner />
-        </CenterContent>
-      )}
-
-      {(showCollection || showNoCollection) && (
-        <>
-          {meta && (
-            <MetaRow>
-              <CollectionDetails collectionMeta={meta} nameTag="Your" />
-              <Links>
-                <InternalTextLink pathValue={shareLinkPath} label="View Share Page" />
-                <InternalTextLink onClick={() => void copyShareLinkToClipboard()} label="Copy Share Link" />
-              </Links>
-            </MetaRow>
-          )}
-          <Line />
-
-          <ControlsContainer>
-            <Controls>
-              <CollectionSearchBar value={searchInput} onChange={onSearch} />
-              <SortSelect value={sortValue} onChange={(e) => onSortChange(e.target.value)}>
-                {SORT_OPTIONS.map((opt) => (
-                  <option key={opt.label} value={`${opt.sortBy}:${opt.sortDir}`}>
-                    {opt.label}
-                  </option>
-                ))}
-              </SortSelect>
-            </Controls>
-          </ControlsContainer>
-
-          {showNoCollection && (
-            <CenterContent>
-              <CollectionNoItems />
-            </CenterContent>
-          )}
-
-          {showCollection && <CardList {...cardListProps} />}
-
-          {pagination && (
-            <PaginationContainer>
-              <CollectionPagination pagination={pagination} onPageChange={onPageChange} />
-            </PaginationContainer>
-          )}
-        </>
-      )}
-    </>
-  )
+  const hookReturn = useInCollection()
+  return <CollectionView {...hookReturn} />
 }
+
+type CollectionViewProps = {
+  collectionParams: CollectionControls
+  cardListProps: CardListProps
+  meta: CollectionMetaDto | undefined
+  pagination: PaginationDto | undefined
+  shareLinkPath: string
+  showNotLoggedIn: boolean
+  showNoCollection: boolean
+  showCollection: boolean
+  showLoading: boolean
+  copyShareLinkToClipboard: () => Promise<void>
+}
+
+const CollectionView = ({
+  collectionParams,
+  cardListProps,
+  meta,
+  pagination,
+  shareLinkPath,
+  showNotLoggedIn,
+  showNoCollection,
+  showCollection,
+  showLoading,
+  copyShareLinkToClipboard,
+}: CollectionViewProps) => (
+  <>
+    {showNotLoggedIn && (
+      <CenterContent>
+        <CollectionNotLoggedIn />
+      </CenterContent>
+    )}
+
+    {showLoading && (
+      <CenterContent>
+        <Spinner />
+      </CenterContent>
+    )}
+
+    {(showCollection || showNoCollection) && (
+      <>
+        {meta && (
+          <MetaRow>
+            <CollectionDetails collectionMeta={meta} nameTag="Your" />
+            <Links>
+              <InternalTextLink pathValue={shareLinkPath} label="View Share Page" />
+              <InternalTextLink onClick={() => void copyShareLinkToClipboard()} label="Copy Share Link" />
+            </Links>
+          </MetaRow>
+        )}
+        <Line />
+
+        <ControlsContainer>
+          <Controls>
+            <CollectionSearchBar
+              value={collectionParams.searchInput}
+              onInputChange={collectionParams.onSearchInputChange}
+              onSearch={collectionParams.onSearch}
+            />
+            <SortSelect
+              value={collectionParams.sortValue}
+              onChange={(e) => collectionParams.onSortChange(e.target.value)}
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.label} value={`${opt.sortBy}:${opt.sortDir}`}>
+                  {opt.label}
+                </option>
+              ))}
+            </SortSelect>
+          </Controls>
+        </ControlsContainer>
+
+        {showNoCollection && (
+          <CenterContent>
+            <CollectionNoItems />
+          </CenterContent>
+        )}
+
+        {showCollection && <CardList {...cardListProps} />}
+
+        {pagination && (
+          <PaginationContainer>
+            <CollectionPagination pagination={pagination} onPageChange={collectionParams.onPageChange} />
+          </PaginationContainer>
+        )}
+      </>
+    )}
+  </>
+)
 
 export const useInCollection = () => {
   const { isLoggedIn, isLoading: isLoadingProfile, profile } = useProfile()
-  const { params, searchInput, sortValue, onSearch, onSortChange, onPageChange } = useCollectionParams()
+  const { params, ...collectionParams } = useCollectionParams()
 
   const { data: collectionDto, refresh, isLoading: isLoadingCollection } = useUserCards(isLoggedIn, params)
 
@@ -136,15 +154,11 @@ export const useInCollection = () => {
   const hasCards = (collectionDto?.cards.length ?? 0) > 0
 
   return {
+    collectionParams,
     cardListProps,
     meta: collectionDto?.meta,
     pagination: collectionDto?.pagination,
     shareLinkPath,
-    searchInput,
-    sortValue,
-    onSearch,
-    onSortChange,
-    onPageChange,
     showNotLoggedIn: !isLoading && !isLoggedIn,
     showNoCollection: !isLoading && !hasCards && isLoggedIn,
     showCollection: !isLoading && hasCards && isLoggedIn,

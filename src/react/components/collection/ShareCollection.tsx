@@ -10,9 +10,11 @@ import { PATH_VALUES } from '../../router/pathValues'
 import { useProfile } from '../../providers/ProfileProvider'
 import InternalTextLink from '../base/text-link/InternalTextLink'
 import { CollectionSearchBar, CollectionPagination, Controls, SortSelect, SORT_OPTIONS } from './CollectionControls'
-import { useCollectionParams } from './useCollectionParams'
+import { useCollectionParams, CollectionControls } from './useCollectionParams'
 import { Line } from '../base/Line'
 import styled from 'styled-components'
+import { CollectionMetaDto, PaginationDto } from '@core/network-types/collection'
+import { CardDto } from '@core/network-types/card'
 
 const ControlsContainer = styled.div`
   margin-top: 1.5rem;
@@ -39,95 +41,107 @@ const Links = styled.div`
 `
 
 const ShareCollection = () => {
-  const {
-    cards,
-    meta,
-    pagination,
-    name,
-    showUserFoundView,
-    showNoUserFoundView,
-    showLoading,
-    showEditLink,
-    searchInput,
-    sortValue,
-    onSearch,
-    onSortChange,
-    onPageChange,
-  } = useInShareCollection()
-
-  return (
-    <>
-      {showUserFoundView && (
-        <>
-          <MetaRow>
-            {meta && <CollectionDetails collectionMeta={meta} nameTag={`${name}'s`} />}
-            {showEditLink && (
-              <Links>
-                <InternalTextLink pathValue={PATH_VALUES.collection()} label="Edit Your Collection" />
-              </Links>
-            )}
-          </MetaRow>
-          <Line />
-
-          <ControlsContainer>
-            <Controls>
-              <CollectionSearchBar value={searchInput} onChange={onSearch} />
-              <SortSelect value={sortValue} onChange={(e) => onSortChange(e.target.value)}>
-                {SORT_OPTIONS.map((opt) => (
-                  <option key={opt.label} value={`${opt.sortBy}:${opt.sortDir}`}>
-                    {opt.label}
-                  </option>
-                ))}
-              </SortSelect>
-            </Controls>
-          </ControlsContainer>
-
-          <CardList cardsDto={cards} isEditable={false} />
-
-          {pagination && (
-            <PaginationContainer>
-              <CollectionPagination pagination={pagination} onPageChange={onPageChange} />
-            </PaginationContainer>
-          )}
-        </>
-      )}
-
-      {showNoUserFoundView && (
-        <CenterContent>
-          <ShareCollectionNotFound />
-        </CenterContent>
-      )}
-
-      {showLoading && (
-        <CenterContent>
-          <Spinner />
-        </CenterContent>
-      )}
-    </>
-  )
+  const hookReturn = useInShareCollection()
+  return <ShareCollectionView {...hookReturn} />
 }
+
+type ShareCollectionViewProps = {
+  collectionParams: CollectionControls
+  cards: CardDto[]
+  meta: CollectionMetaDto | undefined
+  pagination: PaginationDto | undefined
+  name: string | undefined
+  showUserFoundView: boolean
+  showNoUserFoundView: boolean
+  showLoading: boolean
+  showEditLink: boolean
+}
+
+const ShareCollectionView = ({
+  collectionParams,
+  cards,
+  meta,
+  pagination,
+  name,
+  showUserFoundView,
+  showNoUserFoundView,
+  showLoading,
+  showEditLink,
+}: ShareCollectionViewProps) => (
+  <>
+    {showUserFoundView && (
+      <>
+        <MetaRow>
+          {meta && <CollectionDetails collectionMeta={meta} nameTag={`${name}'s`} />}
+          {showEditLink && (
+            <Links>
+              <InternalTextLink pathValue={PATH_VALUES.collection()} label="Edit Your Collection" />
+            </Links>
+          )}
+        </MetaRow>
+        <Line />
+
+        <ControlsContainer>
+          <Controls>
+            <CollectionSearchBar
+              value={collectionParams.searchInput}
+              onInputChange={collectionParams.onSearchInputChange}
+              onSearch={collectionParams.onSearch}
+            />
+            <SortSelect
+              value={collectionParams.sortValue}
+              onChange={(e) => collectionParams.onSortChange(e.target.value)}
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.label} value={`${opt.sortBy}:${opt.sortDir}`}>
+                  {opt.label}
+                </option>
+              ))}
+            </SortSelect>
+          </Controls>
+        </ControlsContainer>
+
+        <CardList cardsDto={cards} isEditable={false} />
+
+        {pagination && (
+          <PaginationContainer>
+            <CollectionPagination pagination={pagination} onPageChange={collectionParams.onPageChange} />
+          </PaginationContainer>
+        )}
+      </>
+    )}
+
+    {showNoUserFoundView && (
+      <CenterContent>
+        <ShareCollectionNotFound />
+      </CenterContent>
+    )}
+
+    {showLoading && (
+      <CenterContent>
+        <Spinner />
+      </CenterContent>
+    )}
+  </>
+)
 
 export const useInShareCollection = () => {
   const { profile } = useProfile()
   const { getParam } = useRouter()
   const userId = getParam('userId') || ''
 
-  const { params, searchInput, sortValue, onSearch, onSortChange, onPageChange } = useCollectionParams()
+  const { params, ...collectionParams } = useCollectionParams()
 
   const { data: collection, isLoading } = useShareCollection(userId, params)
 
   const collectionFound = !!collection && collection.cards.length > 0
 
   return {
+    collectionParams,
     cards: collection?.cards ?? [],
     meta: collection?.meta,
     pagination: collection?.pagination,
     name: collection?.name,
-    searchInput,
-    sortValue,
-    onSearch,
-    onSortChange,
-    onPageChange,
     showUserFoundView: collectionFound && !isLoading,
     showNoUserFoundView: !collectionFound && !isLoading,
     showLoading: isLoading,

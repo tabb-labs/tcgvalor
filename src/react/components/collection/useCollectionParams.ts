@@ -6,10 +6,13 @@ export type CollectionParamsReturn = {
   params: CollectionQueryParams
   searchInput: string
   sortValue: string
-  onSearch: (value: string) => void
+  onSearchInputChange: (value: string) => void
+  onSearch: () => void
   onSortChange: (value: string) => void
   onPageChange: (page: number) => void
 }
+
+export type CollectionControls = Omit<CollectionParamsReturn, 'params'>
 
 export const useCollectionParams = (): CollectionParamsReturn => {
   const { getSearchParam, setSearchParams } = useRouter()
@@ -35,9 +38,12 @@ export const useCollectionParams = (): CollectionParamsReturn => {
     return record
   }
 
-  const onSearch = (value: string) => {
+  const onSearchInputChange = (value: string) => {
     setSearchInput(value)
-    setSearchParams(buildParams({ search: value || undefined, page: 1 }))
+  }
+
+  const onSearch = () => {
+    setSearchParams(buildParams({ search: searchInput || undefined, page: 1 }))
   }
 
   const onSortChange = (value: string) => {
@@ -53,6 +59,7 @@ export const useCollectionParams = (): CollectionParamsReturn => {
     params,
     searchInput,
     sortValue: `${params.sortBy}:${params.sortDir}`,
+    onSearchInputChange,
     onSearch,
     onSortChange,
     onPageChange,
