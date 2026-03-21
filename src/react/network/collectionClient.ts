@@ -25,8 +25,7 @@ export const useUserCards = (isLoggedIn: boolean, params: CollectionQueryParams)
     limit: String(params.limit),
     sortBy: params.sortBy,
     sortDir: params.sortDir,
-    ...(params.name ? { name: params.name } : {}),
-    ...(params.expansion ? { expansion: params.expansion } : {}),
+    ...(params.search ? { search: params.search } : {}),
   })
 
   return useApi<CollectionDto>({
@@ -35,8 +34,16 @@ export const useUserCards = (isLoggedIn: boolean, params: CollectionQueryParams)
   })
 }
 
-export const useShareCollection = (userId: string) => {
+export const useShareCollection = (userId: string, params: CollectionQueryParams) => {
+  const query = new URLSearchParams({
+    page: String(params.page),
+    limit: String(params.limit),
+    sortBy: params.sortBy,
+    sortDir: params.sortDir,
+    ...(params.search ? { search: params.search } : {}),
+  })
+
   return useApi<ShareCollectionDto>({
-    path: `/collection/${userId}`,
+    path: `/collection/${userId}?${query.toString()}`,
   })
 }

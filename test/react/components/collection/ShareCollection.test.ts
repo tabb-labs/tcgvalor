@@ -8,7 +8,7 @@ import { USE_ROUTER_RETURN } from '../../__MOCKS__/useRouterReturn.mock'
 import { PROFILE_CONTEXT_TYPE } from '../../__MOCKS__/profileContextType.mock'
 import { ShareCollectionDto } from '@core/network-types/collection'
 import { UseApiReturn } from '../../../../src/react/network/useApi'
-import { COLLECTION_META_DTO } from '../../../core/__MOCKS__/collection.mock'
+import { COLLECTION_META_DTO, PAGINATION_DTO } from '../../../core/__MOCKS__/collection.mock'
 import { PROFILE_DTO } from '../../../core/__MOCKS__/profile.mock'
 
 const USE_PROFILE = jest.spyOn(ProfileProviderModule, 'useProfile')
@@ -27,6 +27,7 @@ const CARDS = [CARD_DTO, CARD_DTO]
 const SHARE_COLLECTION_DTO: ShareCollectionDto = {
   meta: COLLECTION_META_DTO,
   cards: [],
+  pagination: PAGINATION_DTO,
   name: '',
 }
 
@@ -65,7 +66,7 @@ describe('Use In Share Collection', () => {
 
     renderHook(useInShareCollection)
 
-    expect(USE_SHARE_COLLECTION).toHaveBeenCalledWith(USER_ID)
+    expect(USE_SHARE_COLLECTION).toHaveBeenCalledWith(USER_ID, expect.any(Object))
   })
 
   it('should show user found view when collection exists', () => {

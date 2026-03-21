@@ -72,12 +72,18 @@ class UserCardRepo implements IUserCardRepo {
     userId: number,
     params: CollectionQueryParams
   ): Promise<{ blueprints: CardBlueprintWithUserCards[]; total: number }> => {
-    const { page, limit, name, expansion, sortBy, sortDir } = params
+    const { page, limit, search, sortBy, sortDir } = params
 
     const where: Prisma.CardBlueprintWhereInput = {
       userCards: { some: { userId } },
-      ...(name ? { name: { contains: name, mode: 'insensitive' } } : {}),
-      ...(expansion ? { expansion: { name: { contains: expansion, mode: 'insensitive' } } } : {}),
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' } },
+              { expansion: { name: { contains: search, mode: 'insensitive' } } },
+            ],
+          }
+        : {}),
     }
 
     const orderBy: Prisma.CardBlueprintOrderByWithRelationInput =

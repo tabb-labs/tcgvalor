@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import { ShareCollectionDto } from '@core/network-types/collection'
+import { CollectionQueryParams, ShareCollectionDto } from '@core/network-types/collection'
 import { ICollectionFactory } from '../../domain/CollectionFactory'
 import { Result } from '../Result'
 
@@ -12,17 +12,13 @@ class GetShareCollectionUseCase {
     this.collectionFactory = collectionFactory
   }
 
-  call = async (userId: number): Promise<Result<ShareCollectionDto>> => {
+  call = async (userId: number, params: CollectionQueryParams): Promise<Result<ShareCollectionDto>> => {
     const user = await this.prisma.user.findUnique({ where: { id: userId } })
     if (!user) return Result.failure('user not found')
 
-    const collection = await this.collectionFactory.make(userId)
+    const { cards, meta, pagination } = await this.collectionFactory.makePaginated(userId, params)
 
-    return Result.success({
-      cards: collection.cards(),
-      meta: collection.details(),
-      name: user.name,
-    })
+    return Result.success({ cards, meta, pagination, name: user.name })
   }
 }
 
