@@ -1,6 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { PaginationDto } from '@core/network-types/collection'
+import { SearchWrapper as SearchWrapperBase, SearchIcon, SearchInput } from '../base/SearchBar'
 
 export const Controls = styled.div`
   display: flex;
@@ -8,41 +9,8 @@ export const Controls = styled.div`
   align-items: center;
 `
 
-const SearchWrapper = styled.div`
-  position: relative;
+const SearchWrapper = styled(SearchWrapperBase)`
   flex: 1;
-`
-
-const SearchIcon = styled.span`
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  pointer-events: none;
-  color: ${({ theme }) => theme.staticColor.gray_400};
-`
-
-const SearchInput = styled.input`
-  width: 100%;
-  padding: 0.65rem 1rem 0.65rem 2.75rem;
-  border: 1.5px solid ${({ theme }) => theme.staticColor.gray_300};
-  border-radius: 0.5rem;
-  font-size: 1.4rem;
-  color: ${({ theme }) => theme.staticColor.gray_900};
-  background-color: #ffffff;
-  box-sizing: border-box;
-  transition: border-color 0.15s ease;
-
-  &::placeholder {
-    color: ${({ theme }) => theme.staticColor.gray_400};
-  }
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.staticColor.gold_500};
-  }
 `
 
 export const SortSelect = styled.select`
@@ -77,9 +45,7 @@ const PageBtn = styled.button<{ $active?: boolean; $disabled?: boolean }>`
   border-radius: 0.5rem;
   font-size: 1.3rem;
   font-weight: ${({ $active }) => ($active ? 600 : 400)};
-  border: 1.5px solid
-    ${({ $active, $disabled, theme }) =>
-      $active ? theme.staticColor.gray_900 : $disabled ? theme.staticColor.gray_300 : theme.staticColor.gray_300};
+  border: 1.5px solid ${({ $active, theme }) => ($active ? theme.staticColor.gray_900 : theme.staticColor.gray_300)};
   background-color: ${({ $active, theme }) => ($active ? theme.staticColor.gray_900 : '#ffffff')};
   color: ${({ $active, $disabled, theme }) =>
     $active ? '#ffffff' : $disabled ? theme.staticColor.gray_400 : theme.staticColor.gray_900};

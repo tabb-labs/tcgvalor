@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import { SearchWrapper as SearchWrapperBase, SearchIcon, SearchInput } from '../base/SearchBar'
 import { fetchCatalog } from '../../network/catalogClient'
 import Autocomplete, { useWithAutocomplete } from '../base/form/Autocomplete'
 import React, { useEffect, useState } from 'react'
@@ -24,42 +25,9 @@ const Container = styled.div`
   margin-top: 1rem;
 `
 
-const SearchWrapper = styled.div`
-  position: relative;
+const SearchWrapper = styled(SearchWrapperBase)`
   margin-top: 1.5rem;
   margin-bottom: 0.5rem;
-`
-
-const SearchIcon = styled.span`
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  pointer-events: none;
-  color: ${({ theme }) => theme.staticColor.gray_400};
-`
-
-const SearchInput = styled.input`
-  width: 100%;
-  padding: 0.65rem 1rem 0.65rem 2.75rem;
-  border: 1.5px solid ${({ theme }) => theme.staticColor.gray_300};
-  border-radius: 0.5rem;
-  font-size: 1.4rem;
-  color: ${({ theme }) => theme.staticColor.gray_900};
-  background-color: #ffffff;
-  box-sizing: border-box;
-  transition: border-color 0.15s ease;
-
-  &::placeholder {
-    color: ${({ theme }) => theme.staticColor.gray_400};
-  }
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.staticColor.gold_500};
-  }
 `
 
 const Catalog = () => {
