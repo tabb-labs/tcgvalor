@@ -11,9 +11,9 @@ const catalog = (slug?: string) => {
   }
 }
 
-const collection = (userId?: number) => {
-  if (!userId) return '/collection'
-  else return `/collection/${userId}`
+const collection = (shareToken?: string) => {
+  if (!shareToken) return '/collection'
+  else return `/collection/${shareToken}`
 }
 
 export const PATH_VALUES = {

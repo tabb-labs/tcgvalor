@@ -42,9 +42,8 @@ CollectionController.get(
 )
 
 CollectionController.get(
-  '/:userId',
+  '/:shareToken',
   asyncHandler(async (req, res) => {
-    const userId = Number(req.params.userId)
     const parsed = CollectionQueryParamsSchema.safeParse(req.query)
     if (!parsed.success) {
       res.sendError({ errors: parsed.error.issues.map((i) => i.message), status: 400 })
@@ -52,7 +51,7 @@ CollectionController.get(
     }
     const collectionFactory = new CollectionFactory(new UserCardRepo())
     const getShareCollectionUseCase = new GetShareCollectionUseCase(prisma, collectionFactory)
-    const result = await getShareCollectionUseCase.call(userId, parsed.data)
+    const result = await getShareCollectionUseCase.call(req.params.shareToken, parsed.data)
     if (result.isSuccess()) {
       res.sendData({ data: result.value, status: 200 })
     } else {

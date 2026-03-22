@@ -29,21 +29,12 @@ class OwnedPricesUpdater implements ICronJob {
       .listOwnedCardTraderExpansionIds()
       .then((expansionIds) => {
         Logger.info(`OwnedPricesUpdater: refreshing prices for ${expansionIds.length} expansions`)
-        const batchSize = 5
-        const batches = []
-        for (let i = 0; i < expansionIds.length; i += batchSize) {
-          batches.push(expansionIds.slice(i, i + batchSize))
-        }
-        return batches.reduce(
-          (chain, batch) =>
+        return expansionIds.reduce(
+          (chain, id) =>
             chain.then(() =>
-              Promise.all(
-                batch.map((id) =>
-                  this.pricesForExpansionUseCase.call(id).catch((e) => {
-                    Logger.error(`OwnedPricesUpdater: failed to refresh prices for expansion ${id}: ${e}`)
-                  })
-                )
-              )
+              this.pricesForExpansionUseCase.call(id).catch((e) => {
+                Logger.error(`OwnedPricesUpdater: failed to refresh prices for expansion ${id}: ${e}`)
+              })
             ),
           Promise.resolve() as Promise<unknown>
         )

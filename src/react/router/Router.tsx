@@ -27,7 +27,7 @@ const Router = () => {
 const router = createBrowserRouter([
   { path: '/', element: <HomePage /> },
   { path: '/collection', element: <CollectionPage /> },
-  { path: '/collection/:userId', element: <ShareCollectionPage /> },
+  { path: '/collection/:shareToken', element: <ShareCollectionPage /> },
   { path: '/catalog', element: <CatalogPage /> },
   { path: '/catalog/:expansionSlug', element: <CatalogPage /> },
   { path: '/series', element: <SeriesPage /> },

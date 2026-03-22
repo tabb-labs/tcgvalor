@@ -18,6 +18,7 @@ export type ProfileContextType = {
 const ProfileContext = createContext<ProfileContextType>({
   profile: {
     id: 0,
+    shareToken: '',
     email: null,
     name: '',
     nickname: '',

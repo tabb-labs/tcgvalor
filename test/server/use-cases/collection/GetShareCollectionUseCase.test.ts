@@ -5,13 +5,18 @@ import { makeProfileEntityMock } from '../../__MOCKS__/profileEntity.mock'
 import { COLLECTION_META_DTO, COLLECTION_QUERY_PARAMS, PAGINATION_DTO } from '../../../core/__MOCKS__/collection.mock'
 import { CARD_DTO } from '../../../core/__MOCKS__/card.mock'
 
-const mockPrisma = makePrismaClientMock({ user: { findUnique: jest.fn() } })
+jest.mock('../../../../src/server/use-cases/collection/ShareToken', () => ({
+  encodeShareToken: jest.fn((userId: number) => `token-for-${userId}`),
+}))
+
+const mockPrisma = makePrismaClientMock({ user: { findMany: jest.fn() } })
 
 describe('Get Share Collection UseCase', () => {
   let getShareCollectionUseCase: GetShareCollectionUseCase
   let collectionFactory_FAKE: CollectionFactory_FAKE
 
   const USER_ID = 12345
+  const SHARE_TOKEN = `token-for-${USER_ID}`
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -23,11 +28,11 @@ describe('Get Share Collection UseCase', () => {
       meta: COLLECTION_META_DTO,
       pagination: PAGINATION_DTO,
     })
-    mockPrisma.user.findUnique.mockResolvedValue(makeProfileEntityMock({}))
+    mockPrisma.user.findMany.mockResolvedValue([makeProfileEntityMock({ id: USER_ID })])
   })
 
   it('should return collection domain values', async () => {
-    const result = await getShareCollectionUseCase.call(USER_ID, COLLECTION_QUERY_PARAMS)
+    const result = await getShareCollectionUseCase.call(SHARE_TOKEN, COLLECTION_QUERY_PARAMS)
 
     expect(collectionFactory_FAKE.MAKE_PAGINATED).toHaveBeenCalledWith(USER_ID, COLLECTION_QUERY_PARAMS)
     expect(result.isSuccess()).toBe(true)
@@ -36,20 +41,29 @@ describe('Get Share Collection UseCase', () => {
     expect(result.value.pagination).toEqual(PAGINATION_DTO)
   })
 
-  it('should return user name', async () => {
-    const NAME = 'any name'
-    mockPrisma.user.findUnique.mockResolvedValue(makeProfileEntityMock({ name: NAME }))
+  it('should return user nickname as display name', async () => {
+    const NICKNAME = 'cooltrader'
+    mockPrisma.user.findMany.mockResolvedValue([makeProfileEntityMock({ id: USER_ID, nickname: NICKNAME })])
 
-    const result = await getShareCollectionUseCase.call(USER_ID, COLLECTION_QUERY_PARAMS)
+    const result = await getShareCollectionUseCase.call(SHARE_TOKEN, COLLECTION_QUERY_PARAMS)
 
     expect(result.isSuccess()).toBe(true)
-    expect(result.value.name).toEqual(NAME)
+    expect(result.value.name).toEqual(NICKNAME)
   })
 
-  it('should return failure when user is not found', async () => {
-    mockPrisma.user.findUnique.mockResolvedValue(null)
+  it('should fall back to Trader when nickname is empty', async () => {
+    mockPrisma.user.findMany.mockResolvedValue([makeProfileEntityMock({ id: USER_ID, nickname: '' })])
 
-    const result = await getShareCollectionUseCase.call(USER_ID, COLLECTION_QUERY_PARAMS)
+    const result = await getShareCollectionUseCase.call(SHARE_TOKEN, COLLECTION_QUERY_PARAMS)
+
+    expect(result.isSuccess()).toBe(true)
+    expect(result.value.name).toEqual('Trader')
+  })
+
+  it('should return failure when no user matches the token', async () => {
+    mockPrisma.user.findMany.mockResolvedValue([])
+
+    const result = await getShareCollectionUseCase.call(SHARE_TOKEN, COLLECTION_QUERY_PARAMS)
 
     expect(result.isFailure()).toBe(true)
     expect(collectionFactory_FAKE.MAKE_PAGINATED).not.toHaveBeenCalled()

@@ -64,14 +64,14 @@ describe('Use In Collection', () => {
   })
 
   it('should build share link path', () => {
-    const USER_ID = '123'
+    const SHARE_TOKEN = 'abc12345'
     USE_PROFILE.mockReturnValue({
       ...PROFILE_CONTEXT_TYPE,
-      profile: { ...PROFILE_DTO, id: Number(USER_ID) },
+      profile: { ...PROFILE_DTO, shareToken: SHARE_TOKEN },
     })
     const { result } = renderHook(useInCollection)
 
-    expect(result.current.shareLinkPath).toEqual('/collection/123')
+    expect(result.current.shareLinkPath).toEqual(`/collection/${SHARE_TOKEN}`)
   })
 
   it('should show not logged in when use is not logged in', () => {

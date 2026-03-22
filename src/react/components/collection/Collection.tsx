@@ -56,6 +56,7 @@ type CollectionViewProps = {
   showNoResults: boolean
   showCollection: boolean
   showLoading: boolean
+  showSearchLoading: boolean
   copyShareLinkToClipboard: () => Promise<void>
 }
 
@@ -70,6 +71,7 @@ const CollectionView = ({
   showNoResults,
   showCollection,
   showLoading,
+  showSearchLoading,
   copyShareLinkToClipboard,
 }: CollectionViewProps) => (
   <>
@@ -85,7 +87,7 @@ const CollectionView = ({
       </CenterContent>
     )}
 
-    {(showCollection || showNoCollection || showNoResults) && (
+    {(showCollection || showNoCollection || showNoResults || showSearchLoading) && (
       <>
         {meta && (
           <MetaRow>
@@ -124,15 +126,21 @@ const CollectionView = ({
           </CenterContent>
         )}
 
-        {showNoResults && (
+        {showNoResults && !showSearchLoading && (
           <CenterContent>
             <CollectionNoResults />
           </CenterContent>
         )}
 
-        {showCollection && <CardList {...cardListProps} />}
+        {showSearchLoading && (
+          <CenterContent>
+            <Spinner />
+          </CenterContent>
+        )}
 
-        {pagination && (
+        {showCollection && !showSearchLoading && <CardList {...cardListProps} />}
+
+        {pagination && !showSearchLoading && (
           <PaginationContainer>
             <CollectionPagination pagination={pagination} onPageChange={collectionParams.onPageChange} />
           </PaginationContainer>
@@ -153,7 +161,7 @@ export const useInCollection = () => {
     refreshCards: refresh,
   }
 
-  const shareLinkPath = PATH_VALUES.collection(profile?.id)
+  const shareLinkPath = PATH_VALUES.collection(profile?.shareToken)
 
   const copyShareLinkToClipboard = async () => {
     await navigator.clipboard.writeText(`${location.origin}${shareLinkPath}`)
@@ -174,6 +182,7 @@ export const useInCollection = () => {
     showNoResults: !isInitialLoad && isLoggedIn && totalCards > 0 && !hasCards,
     showCollection: !isInitialLoad && hasCards && isLoggedIn,
     showLoading: isInitialLoad,
+    showSearchLoading: !isInitialLoad && isLoggedIn && isLoadingCollection,
     copyShareLinkToClipboard,
   }
 }
