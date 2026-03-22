@@ -36,14 +36,23 @@ describe('Get Share Collection UseCase', () => {
     expect(result.value.pagination).toEqual(PAGINATION_DTO)
   })
 
-  it('should return user name', async () => {
-    const NAME = 'any name'
-    mockPrisma.user.findUnique.mockResolvedValue(makeProfileEntityMock({ name: NAME }))
+  it('should return user nickname as display name', async () => {
+    const NICKNAME = 'cooltrader'
+    mockPrisma.user.findUnique.mockResolvedValue(makeProfileEntityMock({ nickname: NICKNAME }))
 
     const result = await getShareCollectionUseCase.call(USER_ID, COLLECTION_QUERY_PARAMS)
 
     expect(result.isSuccess()).toBe(true)
-    expect(result.value.name).toEqual(NAME)
+    expect(result.value.name).toEqual(NICKNAME)
+  })
+
+  it('should fall back to Trader when nickname is empty', async () => {
+    mockPrisma.user.findUnique.mockResolvedValue(makeProfileEntityMock({ nickname: '' }))
+
+    const result = await getShareCollectionUseCase.call(USER_ID, COLLECTION_QUERY_PARAMS)
+
+    expect(result.isSuccess()).toBe(true)
+    expect(result.value.name).toEqual('Trader')
   })
 
   it('should return failure when user is not found', async () => {

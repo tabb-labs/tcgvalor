@@ -135,14 +135,14 @@ describe('Use In Share Collection', () => {
   })
 
   it('should show edit link when collection belongs to logged in user ', () => {
-    const USER_ID = '123'
+    const SHARE_TOKEN = 'abc12345'
 
     USE_PROFILE.mockReturnValue({
       ...PROFILE_CONTEXT_TYPE,
-      profile: { ...PROFILE_DTO, id: Number(USER_ID) },
+      profile: { ...PROFILE_DTO, shareToken: SHARE_TOKEN },
     })
 
-    GET_PARAM.mockReturnValue(USER_ID)
+    GET_PARAM.mockReturnValue(SHARE_TOKEN)
 
     USE_ROUTER.mockReturnValue({ ...USE_ROUTER_RETURN, getParam: GET_PARAM })
 

@@ -34,7 +34,7 @@ export const useUserCards = (isLoggedIn: boolean, params: CollectionQueryParams)
   })
 }
 
-export const useShareCollection = (userId: string, params: CollectionQueryParams) => {
+export const useShareCollection = (shareToken: string, params: CollectionQueryParams) => {
   const query = new URLSearchParams({
     page: String(params.page),
     limit: String(params.limit),
@@ -44,6 +44,6 @@ export const useShareCollection = (userId: string, params: CollectionQueryParams
   })
 
   return useApi<ShareCollectionDto>({
-    path: `/collection/${userId}?${query.toString()}`,
+    path: `/collection/${shareToken}?${query.toString()}`,
   })
 }

@@ -18,7 +18,7 @@ class GetShareCollectionUseCase {
 
     const { cards, meta, pagination } = await this.collectionFactory.makePaginated(userId, params)
 
-    return Result.success({ cards, meta, pagination, name: user.name })
+    return Result.success({ cards, meta, pagination, name: user.nickname || 'Trader' })
   }
 }
 

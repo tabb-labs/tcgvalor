@@ -12,6 +12,7 @@ import CardBlueprintMarketValueRepo from '../repository/CardBlueprintMarketValue
 import CardTraderClient from '../clients/CardTrader/CardTraderClient'
 import GetCollectionUseCase from '../use-cases/collection/GetCollectionUseCase'
 import GetShareCollectionUseCase from '../use-cases/collection/GetShareCollectionUseCase'
+import { decodeShareToken } from '../use-cases/collection/ShareToken'
 import CollectionFactory from '../domain/CollectionFactory'
 import PricesForExpansionUseCase from '../use-cases/price/PricesForExpansionUseCase'
 import { prisma } from '../../../prisma/prismaClient'
@@ -42,9 +43,13 @@ CollectionController.get(
 )
 
 CollectionController.get(
-  '/:userId',
+  '/:shareToken',
   asyncHandler(async (req, res) => {
-    const userId = Number(req.params.userId)
+    const userId = decodeShareToken(req.params.shareToken)
+    if (userId === null) {
+      res.sendError({ errors: ['invalid share token'], status: 404 })
+      return
+    }
     const parsed = CollectionQueryParamsSchema.safeParse(req.query)
     if (!parsed.success) {
       res.sendError({ errors: parsed.error.issues.map((i) => i.message), status: 400 })

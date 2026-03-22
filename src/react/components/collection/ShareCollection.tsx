@@ -137,11 +137,11 @@ const ShareCollectionView = ({
 export const useInShareCollection = () => {
   const { profile } = useProfile()
   const { getParam } = useRouter()
-  const userId = getParam('userId') || ''
+  const shareToken = getParam('shareToken') || ''
 
   const { params, ...collectionParams } = useCollectionParams()
 
-  const { data: collection, isLoading } = useShareCollection(userId, params)
+  const { data: collection, isLoading } = useShareCollection(shareToken, params)
 
   const hasCards = (collection?.cards.length ?? 0) > 0
   const totalCards = collection?.meta.cardsInCollection ?? 0
@@ -157,7 +157,7 @@ export const useInShareCollection = () => {
     showNoUserFoundView: !isLoading && (!userExists || totalCards === 0),
     showNoResults: !isLoading && userExists && totalCards > 0 && !hasCards,
     showLoading: isLoading,
-    showEditLink: Number(userId) === profile?.id,
+    showEditLink: shareToken === profile?.shareToken,
   }
 }
 
