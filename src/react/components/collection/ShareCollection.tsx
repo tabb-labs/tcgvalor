@@ -56,6 +56,7 @@ type ShareCollectionViewProps = {
   showNoUserFoundView: boolean
   showNoResults: boolean
   showLoading: boolean
+  showSearchLoading: boolean
   showEditLink: boolean
 }
 
@@ -69,10 +70,11 @@ const ShareCollectionView = ({
   showNoUserFoundView,
   showNoResults,
   showLoading,
+  showSearchLoading,
   showEditLink,
 }: ShareCollectionViewProps) => (
   <>
-    {(showUserFoundView || showNoResults) && (
+    {(showUserFoundView || showNoResults || showSearchLoading) && (
       <>
         <MetaRow>
           {meta && <CollectionDetails collectionMeta={meta} nameTag={`${name}'s`} />}
@@ -104,15 +106,21 @@ const ShareCollectionView = ({
           </Controls>
         </ControlsContainer>
 
-        {showNoResults && (
+        {showNoResults && !showSearchLoading && (
           <CenterContent>
             <CollectionNoResults />
           </CenterContent>
         )}
 
-        {showUserFoundView && <CardList cardsDto={cards} isEditable={false} />}
+        {showSearchLoading && (
+          <CenterContent>
+            <Spinner />
+          </CenterContent>
+        )}
 
-        {pagination && (
+        {showUserFoundView && !showSearchLoading && <CardList cardsDto={cards} isEditable={false} />}
+
+        {pagination && !showSearchLoading && (
           <PaginationContainer>
             <CollectionPagination pagination={pagination} onPageChange={collectionParams.onPageChange} />
           </PaginationContainer>
@@ -146,6 +154,7 @@ export const useInShareCollection = () => {
   const hasCards = (collection?.cards.length ?? 0) > 0
   const totalCards = collection?.meta.cardsInCollection ?? 0
   const userExists = !!collection
+  const isInitialLoad = isLoading && !collection
 
   return {
     collectionParams,
@@ -154,9 +163,10 @@ export const useInShareCollection = () => {
     pagination: collection?.pagination,
     name: collection?.name,
     showUserFoundView: !isLoading && userExists && hasCards,
-    showNoUserFoundView: !isLoading && (!userExists || totalCards === 0),
+    showNoUserFoundView: !isInitialLoad && !isLoading && (!userExists || totalCards === 0),
     showNoResults: !isLoading && userExists && totalCards > 0 && !hasCards,
-    showLoading: isLoading,
+    showLoading: isInitialLoad,
+    showSearchLoading: !isInitialLoad && isLoading,
     showEditLink: shareToken === profile?.shareToken,
   }
 }
