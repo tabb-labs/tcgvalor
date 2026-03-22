@@ -1,24 +1,9 @@
-import { createCipheriv, createDecipheriv, createHash } from 'crypto'
+import { createHmac, createHash } from 'crypto'
 import { ENV } from '../../env'
 
-const getKey = () => createHash('sha256').update(ENV.ADMIN_TOKEN()).digest().slice(0, 16)
-const IV = Buffer.alloc(16, 0)
+// Key is derived once (lazy) from ADMIN_TOKEN; 6 bytes of HMAC output = 8 base64url chars
+let _key: Buffer | undefined
+const key = (): Buffer => (_key ??= createHash('sha256').update(ENV.ADMIN_TOKEN()).digest())
 
-export const encodeShareToken = (userId: number): string => {
-  const cipher = createCipheriv('aes-128-ctr', getKey(), IV)
-  const buf = Buffer.alloc(6)
-  buf.writeUInt32BE(userId, 0)
-  return Buffer.concat([cipher.update(buf), cipher.final()]).toString('base64url')
-}
-
-export const decodeShareToken = (token: string): number | null => {
-  try {
-    const decipher = createDecipheriv('aes-128-ctr', getKey(), IV)
-    const encrypted = Buffer.from(token, 'base64url')
-    if (encrypted.length !== 6) return null
-    const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()])
-    return decrypted.readUInt32BE(0)
-  } catch {
-    return null
-  }
-}
+export const encodeShareToken = (userId: number): string =>
+  createHmac('sha256', key()).update(userId.toString()).digest().subarray(0, 6).toString('base64url')
