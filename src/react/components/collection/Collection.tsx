@@ -182,7 +182,7 @@ export const useInCollection = () => {
     showNoResults: !isInitialLoad && isLoggedIn && totalCards > 0 && !hasCards,
     showCollection: !isInitialLoad && hasCards && isLoggedIn,
     showLoading: isInitialLoad,
-    showSearchLoading: !isInitialLoad && isLoggedIn && isLoadingCollection,
+    showSearchLoading: !isInitialLoad && isLoggedIn && isLoadingCollection && !collectionDto,
     copyShareLinkToClipboard,
   }
 }
