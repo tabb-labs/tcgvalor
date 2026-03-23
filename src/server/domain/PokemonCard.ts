@@ -3,6 +3,7 @@ import { CardDto } from '@core/network-types/card'
 class PokemonCard {
   readonly cardTraderBlueprintId: number
   readonly cardTraderExpansionId: number
+  readonly expansionName: string
   readonly name: string
   readonly collectorNumber: string
   readonly pokemonRarity: string
@@ -15,6 +16,7 @@ class PokemonCard {
   constructor(data: {
     cardTraderBlueprintId: number
     cardTraderExpansionId: number
+    expansionName?: string
     name: string
     collectorNumber: string
     pokemonRarity: string
@@ -26,6 +28,7 @@ class PokemonCard {
   }) {
     this.cardTraderBlueprintId = data.cardTraderBlueprintId
     this.cardTraderExpansionId = data.cardTraderExpansionId
+    this.expansionName = data.expansionName ?? ''
     this.name = data.name
     this.collectorNumber = data.collectorNumber
     this.pokemonRarity = data.pokemonRarity
@@ -39,6 +42,7 @@ class PokemonCard {
   toCardDto = (): CardDto => ({
     blueprintId: this.cardTraderBlueprintId,
     expansionId: this.cardTraderExpansionId,
+    expansionName: this.expansionName,
     name: this.name,
     imageUrlPreview: this.imageUrlPreview,
     imageUrlShow: this.imageUrlShow,

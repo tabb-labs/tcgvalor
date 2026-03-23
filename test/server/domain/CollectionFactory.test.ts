@@ -4,7 +4,7 @@ import { CardBlueprintWithUserCards } from '../../../src/server/repository/UserC
 import { COLLECTION_META_DTO, COLLECTION_QUERY_PARAMS } from '../../core/__MOCKS__/collection.mock'
 
 const makeBlueprint = (
-  overrides: Partial<{ name: string; imagePreviewUrl: string; imageShowUrl: string }> = {}
+  overrides: Partial<{ name: string; expansionName: string; imagePreviewUrl: string; imageShowUrl: string }> = {}
 ): CardBlueprintWithUserCards =>
   ({
     name: overrides.name ?? 'Pikachu',
@@ -12,6 +12,7 @@ const makeBlueprint = (
     imageShowUrl: overrides.imageShowUrl ?? 'show-url',
     platformLinks: [{ platform: 'CARD_TRADER', externalId: '100' }],
     expansion: {
+      name: overrides.expansionName ?? 'Base Set',
       platformLinks: [{ platform: 'CARD_TRADER', externalId: '200' }],
     },
     marketValue: { medianMarketValueCents: 500, listingCount: 3 },
@@ -55,6 +56,7 @@ describe('CollectionFactory', () => {
       expect(result.cards[0].name).toBe('Charizard')
       expect(result.cards[0].imageUrlPreview).toBe('charizard-preview')
       expect(result.cards[0].imageUrlShow).toBe('charizard-show')
+      expect(result.cards[0].expansionName).toBe('Base Set')
     })
 
     it('should compute pagination correctly', async () => {

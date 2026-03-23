@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { PaginationDto } from '@core/network-types/collection'
-import { SearchWrapper as SearchWrapperBase, SearchIcon, SearchInput } from '../base/SearchBar'
+import SearchBar, { SearchWrapper as SearchWrapperBase } from '../base/SearchBar'
 
 export const Controls = styled.div`
   display: flex;
@@ -93,25 +93,6 @@ const getPageNumbers = (current: number, total: number): (number | '...')[] => {
   return pages
 }
 
-const SearchButton = styled.button`
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  padding: 0 1rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  color: ${({ theme }) => theme.staticColor.gray_400};
-  transition: color 0.15s ease;
-
-  &:hover {
-    color: ${({ theme }) => theme.staticColor.gray_900};
-  }
-`
-
 type CollectionSearchBarProps = {
   value: string
   onInputChange: (value: string) => void
@@ -120,29 +101,12 @@ type CollectionSearchBarProps = {
 
 export const CollectionSearchBar = ({ value, onInputChange, onSearch }: CollectionSearchBarProps) => (
   <SearchWrapper>
-    <SearchIcon>
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M10.5 10.5L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
-    </SearchIcon>
-    <SearchInput
+    <SearchBar
       placeholder="Search cards or expansions..."
       value={value}
-      onChange={(e) => onInputChange(e.target.value)}
-      onKeyDown={(e) => e.key === 'Enter' && onSearch()}
+      onInputChange={onInputChange}
+      onSearch={onSearch}
     />
-    <SearchButton type="button" onClick={onSearch} aria-label="Search">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path
-          d="M3 8h10M9 4l4 4-4 4"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </SearchButton>
   </SearchWrapper>
 )
 

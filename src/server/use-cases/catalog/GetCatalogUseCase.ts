@@ -18,7 +18,8 @@ class GetCatalogUseCase {
       this.pokemonExpansionFactory.make(cardTraderExpansionId),
     ])
 
-    const cards = pokemonCards.map((c) => c.toCardDto())
+    const expansionName = expansion?.name ?? ''
+    const cards = pokemonCards.map((c) => ({ ...c.toCardDto(), expansionName }))
     const details = expansion ? expansion.toExpansionDetailsDto(pokemonCards) : null
 
     return Result.success({ details, cards })

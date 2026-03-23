@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import GetCatalogUseCase from '../use-cases/catalog/GetCatalogUseCase'
+import SearchCatalogByNameUseCase from '../use-cases/catalog/SearchCatalogByNameUseCase'
 import UserCardRepo from '../repository/UserCardRepo'
 import CardTraderClient from '../clients/CardTrader/CardTraderClient'
 import Store from '../StoreRegistry'
@@ -16,6 +17,21 @@ const CatalogController = Router()
 CatalogController.get('/', (_, res) => {
   res.sendData({ data: Store.expansions.getState() })
 })
+
+CatalogController.get(
+  '/search',
+  asyncHandler(async (req, res) => {
+    const name = req.query.name as string | undefined
+    if (!name || name.trim().length < 2) {
+      res.sendError({ errors: ['name query param must be at least 2 characters'] })
+      return
+    }
+
+    const searchUseCase = new SearchCatalogByNameUseCase(new CardBlueprintPokemonRepo())
+    const cards = await searchUseCase.call(name.trim(), req.currentUser?.id)
+    res.sendData({ data: cards })
+  })
+)
 
 CatalogController.get(
   '/:id',
