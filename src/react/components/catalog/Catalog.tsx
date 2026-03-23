@@ -1,6 +1,6 @@
 import styled from 'styled-components'
-import { SearchWrapper as SearchWrapperBase, SearchIcon, SearchInput } from '../base/SearchBar'
-import { fetchCatalog } from '../../network/catalogClient'
+import SearchBar, { SearchWrapper as SearchWrapperBase } from '../base/SearchBar'
+import { fetchCatalog, fetchCatalogByName } from '../../network/catalogClient'
 import Autocomplete, { useWithAutocomplete } from '../base/form/Autocomplete'
 import React, { useEffect, useState } from 'react'
 import { CatalogDto, ExpansionDto } from '@core/network-types/catalog'
@@ -18,8 +18,11 @@ import Spinner from '../base/Spinner'
 import { CenterContent } from '../base/layout/CenterContent'
 import CatalogNoCards from './CatalogNoCards'
 import CatalogNoExpansionSelected from './CatalogNoExpansionSelected'
+import CatalogNoNameSearch from './CatalogNoNameSearch'
 import CollectionNoResults from '../collection/CollectionNoResults'
 import { StickyScrollNavBar, ScrollToTopButton, ExpansionLogo } from '../sticky-scroll'
+
+type SearchMode = 'expansion' | 'name'
 
 const Container = styled.div`
   margin-top: 1rem;
@@ -30,8 +33,38 @@ const SearchWrapper = styled(SearchWrapperBase)`
   margin-bottom: 0.5rem;
 `
 
+const ModeToggle = styled.div`
+  display: flex;
+  gap: 0;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border: 1.5px solid ${({ theme }) => theme.staticColor.gray_300};
+  border-radius: 0.5rem;
+  overflow: hidden;
+  width: fit-content;
+`
+
+const ModeButton = styled.button<{ $active: boolean }>`
+  padding: 0.6rem 1.2rem;
+  font-size: 1.3rem;
+  border: none;
+  cursor: pointer;
+  background-color: ${({ $active, theme }) => ($active ? theme.staticColor.gray_900 : '#ffffff')};
+  color: ${({ $active, theme }) => ($active ? '#ffffff' : theme.staticColor.gray_700)};
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
+`
+
+const NameSearchWrapper = styled(SearchWrapperBase)`
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+`
+
 const Catalog = () => {
   const {
+    searchMode,
+    onSearchModeChange,
     autocompleteBind,
     cardsDto,
     cardSearch,
@@ -43,6 +76,13 @@ const Catalog = () => {
     showLoading,
     showNoCardsYet,
     showNoExpansionsSelected,
+    nameSearch,
+    onNameSearchChange,
+    onNameSearch,
+    nameSearchCardsDto,
+    showNameSearchLoading,
+    showNameSearchZeroState,
+    showNameSearchNoResults,
   } = useInCatalog()
 
   useEffect(expansionsLoadedEffect.effect, expansionsLoadedEffect.deps)
@@ -50,57 +90,97 @@ const Catalog = () => {
 
   return (
     <Container>
-      <p>Search Pokemon Cards By Expansion</p>
-      <Autocomplete {...autocompleteBind} />
+      <ModeToggle>
+        <ModeButton $active={searchMode === 'expansion'} onClick={() => onSearchModeChange('expansion')}>
+          By Expansion
+        </ModeButton>
+        <ModeButton $active={searchMode === 'name'} onClick={() => onSearchModeChange('name')}>
+          By Name
+        </ModeButton>
+      </ModeToggle>
 
-      {!showLoading && expansionDetailsDto && <CatalogExpansionDetails expansionDetailsDto={expansionDetailsDto} />}
+      {searchMode === 'expansion' && (
+        <>
+          <Autocomplete {...autocompleteBind} />
 
-      {showNoCardsYet && (
-        <CenterContent>
-          <CatalogNoCards />
-        </CenterContent>
+          {!showLoading && expansionDetailsDto && <CatalogExpansionDetails expansionDetailsDto={expansionDetailsDto} />}
+
+          {showNoCardsYet && (
+            <CenterContent>
+              <CatalogNoCards />
+            </CenterContent>
+          )}
+
+          {showLoading && (
+            <CenterContent>
+              <Spinner />
+            </CenterContent>
+          )}
+
+          {showNoExpansionsSelected && (
+            <CenterContent>
+              <CatalogNoExpansionSelected />
+            </CenterContent>
+          )}
+
+          {expansionDetailsDto && (
+            <SearchWrapper>
+              <SearchBar
+                id="CardListSearch"
+                placeholder="Search cards..."
+                value={cardSearch}
+                onInputChange={onCardSearchChange}
+                onSearch={() => {}}
+              />
+            </SearchWrapper>
+          )}
+
+          {cardSearch && cardsDto.length === 0 && !showLoading && (
+            <CenterContent>
+              <CollectionNoResults />
+            </CenterContent>
+          )}
+
+          <CardList cardsDto={cardsDto} refreshCards={refreshCards} />
+        </>
       )}
 
-      {showLoading && (
-        <CenterContent>
-          <Spinner />
-        </CenterContent>
-      )}
+      {searchMode === 'name' && (
+        <>
+          <NameSearchWrapper>
+            <SearchBar
+              placeholder="Search by card name..."
+              value={nameSearch}
+              onInputChange={onNameSearchChange}
+              onSearch={onNameSearch}
+            />
+          </NameSearchWrapper>
 
-      {showNoExpansionsSelected && (
-        <CenterContent>
-          <CatalogNoExpansionSelected />
-        </CenterContent>
-      )}
+          {showNameSearchZeroState && (
+            <CenterContent>
+              <CatalogNoNameSearch />
+            </CenterContent>
+          )}
 
-      {expansionDetailsDto && (
-        <SearchWrapper>
-          <SearchIcon>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M10.5 10.5L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-          </SearchIcon>
-          <SearchInput
-            id="CardListSearch"
-            placeholder="Search cards..."
-            value={cardSearch}
-            onChange={(e) => onCardSearchChange(e.target.value)}
-          />
-        </SearchWrapper>
-      )}
+          {showNameSearchLoading && (
+            <CenterContent>
+              <Spinner />
+            </CenterContent>
+          )}
 
-      {cardSearch && cardsDto.length === 0 && !showLoading && (
-        <CenterContent>
-          <CollectionNoResults />
-        </CenterContent>
-      )}
+          {showNameSearchNoResults && (
+            <CenterContent>
+              <CollectionNoResults />
+            </CenterContent>
+          )}
 
-      <CardList cardsDto={cardsDto} refreshCards={refreshCards} />
+          <CardList cardsDto={nameSearchCardsDto} refreshCards={() => onNameSearch()} />
+        </>
+      )}
 
       <StickyScrollNavBar>
         <ScrollToTopButton />
-        <ExpansionLogo logoUrl={expansionDetailsDto?.logoUrl ?? null} />
+        {searchMode === 'expansion' && <ExpansionLogo logoUrl={expansionDetailsDto?.logoUrl ?? null} />}
       </StickyScrollNavBar>
     </Container>
   )
@@ -115,6 +195,11 @@ export const useInCatalog = () => {
   const [selectedExpansion, setSelectedExpansion] = useState<CatalogDto | null>(null)
   const [allCardsDto, setAllCardsDto] = useState<CardDto[]>([])
   const [cardSearch, setCardSearch] = useState('')
+  const [searchMode, setSearchMode] = useState<SearchMode>('expansion')
+  const [nameSearch, setNameSearch] = useState('')
+  const [nameSearchCardsDto, setNameSearchCardsDto] = useState<CardDto[]>([])
+  const [isLoadingNameSearch, setIsLoadingNameSearch] = useState(false)
+  const [nameSearchSubmitted, setNameSearchSubmitted] = useState(false)
 
   const fetchExpansionDetailsAndCards = () => {
     if (!expansionSlug) return
@@ -131,6 +216,23 @@ export const useInCatalog = () => {
       .finally(() => {
         setIsLoadingCatalog(false)
       })
+  }
+
+  const onNameSearch = () => {
+    if (nameSearch.trim().length < 2) return
+    setIsLoadingNameSearch(true)
+    setNameSearchSubmitted(true)
+    fetchCatalogByName(nameSearch.trim())
+      .then((res) => setNameSearchCardsDto(res.data ?? []))
+      .catch(() => showError('Failed to search cards'))
+      .finally(() => setIsLoadingNameSearch(false))
+  }
+
+  const onSearchModeChange = (mode: SearchMode) => {
+    setSearchMode(mode)
+    setNameSearch('')
+    setNameSearchCardsDto([])
+    setNameSearchSubmitted(false)
   }
 
   const sortByHighestMedian = (a: CardDto, b: CardDto) => {
@@ -181,6 +283,8 @@ export const useInCatalog = () => {
   const pendingLoad = !!expansionSlug && !slugNotFound && !selectedExpansion
 
   return {
+    searchMode,
+    onSearchModeChange,
     autocompleteBind: { ...autocompleteBind, id: 'CatalogAutocomplete' },
     cardsDto: cardSearch
       ? allCardsDto.filter((c) => c.name.toLowerCase().includes(cardSearch.toLowerCase()))
@@ -194,6 +298,13 @@ export const useInCatalog = () => {
     showLoading: (isLoadingCatalog || pendingLoad) && allCardsDto.length === 0,
     showNoCardsYet: !isLoadingCatalog && selectedExpansion?.cards.length === 0,
     showNoExpansionsSelected: !expansionSlug || slugNotFound,
+    nameSearch,
+    onNameSearchChange: setNameSearch,
+    onNameSearch,
+    nameSearchCardsDto,
+    showNameSearchLoading: isLoadingNameSearch,
+    showNameSearchZeroState: !nameSearchSubmitted && !isLoadingNameSearch,
+    showNameSearchNoResults: nameSearchSubmitted && !isLoadingNameSearch && nameSearchCardsDto.length === 0,
   }
 }
 export default Catalog

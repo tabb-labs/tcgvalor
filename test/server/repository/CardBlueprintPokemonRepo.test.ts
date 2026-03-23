@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { prisma } from '../../../prisma/prismaClient'
 import CardBlueprintPokemonRepo, {
   CreateCardBlueprintPokemonEntity,
@@ -127,6 +128,61 @@ describe('CardBlueprintPokemonRepo', () => {
           pokemonCardBlueprint: true,
         },
       })
+    })
+  })
+
+  describe('searchByName', () => {
+    it('should return empty array when no blueprints match', async () => {
+      FIND_MANY.mockResolvedValue([])
+      const result = await repo.searchByName('Pikachu')
+      expect(result).toEqual([])
+    })
+
+    it('should return matched blueprints', async () => {
+      const blueprints = [{ id: 1, name: 'Pikachu' }]
+      FIND_MANY.mockResolvedValue(blueprints)
+      const result = await repo.searchByName('Pikachu')
+      expect(result).toEqual(blueprints)
+    })
+
+    it('should query with case-insensitive name contains and correct includes', async () => {
+      FIND_MANY.mockResolvedValue([])
+      await repo.searchByName('pikachu')
+      expect(FIND_MANY).toHaveBeenCalledWith({
+        where: { name: { contains: 'pikachu', mode: 'insensitive' } },
+        include: {
+          platformLinks: true,
+          marketValue: true,
+          expansion: { include: { platformLinks: true } },
+          userCards: { where: { userId: -1 } },
+        },
+        orderBy: { marketValue: { medianMarketValueCents: 'desc' } },
+        take: 50,
+      })
+    })
+
+    it('should filter userCards by userId when provided', async () => {
+      FIND_MANY.mockResolvedValue([])
+      await repo.searchByName('Pikachu', 99)
+      expect(FIND_MANY).toHaveBeenCalledWith(
+        expect.objectContaining({
+          include: expect.objectContaining({
+            userCards: { where: { userId: 99 } },
+          }),
+        })
+      )
+    })
+
+    it('should filter userCards by -1 when userId is not provided', async () => {
+      FIND_MANY.mockResolvedValue([])
+      await repo.searchByName('Pikachu')
+      expect(FIND_MANY).toHaveBeenCalledWith(
+        expect.objectContaining({
+          include: expect.objectContaining({
+            userCards: { where: { userId: -1 } },
+          }),
+        })
+      )
     })
   })
 

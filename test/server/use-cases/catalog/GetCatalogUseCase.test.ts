@@ -79,6 +79,7 @@ describe('Get Catalog UseCase', () => {
       const expectedResult: CardDto = {
         blueprintId: 1,
         expansionId: 2,
+        expansionName: 'Base Set',
         name: 'name',
         imageUrlPreview: 'preview',
         imageUrlShow: 'show',

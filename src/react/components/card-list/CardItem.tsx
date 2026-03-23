@@ -78,6 +78,7 @@ const CardItem = ({ cardDto, id, isEditable = true, refreshCards = () => {} }: C
         <h2>{cardDto.name}</h2>
         <Line />
         <Details>
+          {cardDto.expansionName && <p>{cardDto.expansionName}</p>}
           <PriceWell>
             <h3>
               Value: <Price>{formattedMedian}</Price>

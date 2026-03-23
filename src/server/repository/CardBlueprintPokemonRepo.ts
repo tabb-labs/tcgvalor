@@ -5,6 +5,15 @@ export type PokemonCardBlueprint = Prisma.CardBlueprintGetPayload<{
   include: { platformLinks: true; pokemonCardBlueprint: true }
 }>
 
+export type CardBlueprintWithExpansionAndValue = Prisma.CardBlueprintGetPayload<{
+  include: {
+    platformLinks: true
+    marketValue: true
+    expansion: { include: { platformLinks: true } }
+    userCards: true
+  }
+}>
+
 export type CreateCardBlueprintPokemonEntity = {
   expansionId: number
   cardTraderBlueprintId: number
@@ -18,6 +27,7 @@ export type CreateCardBlueprintPokemonEntity = {
 export interface ICardBlueprintPokemonRepo {
   find: (cardTraderBlueprintId: number) => Promise<PokemonCardBlueprint | null>
   listByExpansion: (cardTraderExpansionId: number) => Promise<PokemonCardBlueprint[]>
+  searchByName: (name: string, userId?: number) => Promise<CardBlueprintWithExpansionAndValue[]>
   create: (entity: CreateCardBlueprintPokemonEntity) => Promise<number>
 }
 
@@ -49,6 +59,20 @@ class CardBlueprintPokemonRepo implements ICardBlueprintPokemonRepo {
         platformLinks: true,
         pokemonCardBlueprint: true,
       },
+    })
+  }
+
+  searchByName = (name: string, userId?: number): Promise<CardBlueprintWithExpansionAndValue[]> => {
+    return prisma.cardBlueprint.findMany({
+      where: { name: { contains: name, mode: 'insensitive' } },
+      include: {
+        platformLinks: true,
+        marketValue: true,
+        expansion: { include: { platformLinks: true } },
+        userCards: { where: { userId: userId ?? -1 } },
+      },
+      orderBy: { marketValue: { medianMarketValueCents: 'desc' } },
+      take: 50,
     })
   }
 

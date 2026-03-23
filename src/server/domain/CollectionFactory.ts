@@ -48,6 +48,7 @@ class CollectionFactory implements ICollectionFactory {
     return new PokemonCard({
       cardTraderBlueprintId: Number(blueprintLink?.externalId ?? -1),
       cardTraderExpansionId: Number(expansionLink?.externalId ?? -1),
+      expansionName: blueprint.expansion.name,
       name: blueprint.name,
       collectorNumber: '',
       pokemonRarity: '',

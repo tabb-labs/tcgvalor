@@ -11,6 +11,7 @@ import { UseApiReturn } from '../../../../src/react/network/useApi'
 import { ExpansionDto } from '@core/network-types/catalog'
 
 const FETCH_CATALOG = jest.spyOn(catalogClientModule, 'fetchCatalog')
+const FETCH_CATALOG_BY_NAME = jest.spyOn(catalogClientModule, 'fetchCatalogByName')
 const USE_EXPANSIONS_DATA = jest.spyOn(catalogClientModule, 'useExpansionsData')
 const USE_EXPANSION = jest.spyOn(ExpansionProviderClient, 'useExpansion')
 
@@ -55,7 +56,91 @@ const USE_WITH_AUTOCOMPLETE_RETURN: AutocompleteModule.UseWithAutocompleteReturn
 
 USE_WITH_AUTOCOMPLETE.mockReturnValue(USE_WITH_AUTOCOMPLETE_RETURN)
 
-beforeEach(jest.clearAllMocks)
+beforeEach(() => {
+  jest.clearAllMocks()
+  FETCH_CATALOG_BY_NAME.mockResolvedValue({ data: [], errors: null, isSuccessful: true })
+})
+
+describe('Use In Catalog - Name Search Mode', () => {
+  it('should default searchMode to expansion', () => {
+    const { result } = renderHook(useInCatalog)
+    expect(result.current.searchMode).toBe('expansion')
+  })
+
+  it('should switch to name mode when onSearchModeChange is called', () => {
+    const { result } = renderHook(useInCatalog)
+    act(() => result.current.onSearchModeChange('name'))
+    expect(result.current.searchMode).toBe('name')
+  })
+
+  it('should show zero state before any search is submitted', () => {
+    const { result } = renderHook(useInCatalog)
+    act(() => result.current.onSearchModeChange('name'))
+    expect(result.current.showNameSearchZeroState).toBe(true)
+    expect(result.current.showNameSearchNoResults).toBe(false)
+  })
+
+  it('should not fetch when name is less than 2 characters', async () => {
+    const { result } = renderHook(useInCatalog)
+    act(() => result.current.onSearchModeChange('name'))
+    act(() => result.current.onNameSearchChange('a'))
+    await act(async () => {
+      result.current.onNameSearch()
+      await Promise.resolve()
+    })
+    expect(FETCH_CATALOG_BY_NAME).not.toHaveBeenCalled()
+    expect(result.current.showNameSearchZeroState).toBe(true)
+  })
+
+  it('should fetch when name is at least 2 characters', async () => {
+    const { result } = renderHook(useInCatalog)
+    act(() => result.current.onNameSearchChange('pi'))
+    await act(async () => {
+      result.current.onNameSearch()
+      await Promise.resolve()
+    })
+    expect(FETCH_CATALOG_BY_NAME).toHaveBeenCalledWith('pi')
+  })
+
+  it('should populate nameSearchCardsDto with results', async () => {
+    FETCH_CATALOG_BY_NAME.mockResolvedValue({ data: [CARD_DTO], errors: null, isSuccessful: true })
+    const { result } = renderHook(useInCatalog)
+    act(() => result.current.onNameSearchChange('pikachu'))
+    await act(async () => {
+      result.current.onNameSearch()
+      await Promise.resolve()
+    })
+    expect(result.current.nameSearchCardsDto).toEqual([CARD_DTO])
+    expect(result.current.showNameSearchZeroState).toBe(false)
+    expect(result.current.showNameSearchNoResults).toBe(false)
+  })
+
+  it('should show no results state when search returns empty', async () => {
+    const { result } = renderHook(useInCatalog)
+    act(() => result.current.onNameSearchChange('zzz'))
+    await act(async () => {
+      result.current.onNameSearch()
+      await Promise.resolve()
+    })
+    expect(result.current.showNameSearchNoResults).toBe(true)
+    expect(result.current.showNameSearchZeroState).toBe(false)
+  })
+
+  it('should reset name search state when switching modes', async () => {
+    FETCH_CATALOG_BY_NAME.mockResolvedValue({ data: [CARD_DTO], errors: null, isSuccessful: true })
+    const { result } = renderHook(useInCatalog)
+    act(() => result.current.onNameSearchChange('pikachu'))
+    await act(async () => {
+      result.current.onNameSearch()
+      await Promise.resolve()
+    })
+    expect(result.current.nameSearchCardsDto).toHaveLength(1)
+
+    act(() => result.current.onSearchModeChange('expansion'))
+    expect(result.current.nameSearchCardsDto).toEqual([])
+    expect(result.current.showNameSearchZeroState).toBe(true)
+  })
+})
 
 describe('Use In Catalog', () => {
   it('should init as empty array', () => {
