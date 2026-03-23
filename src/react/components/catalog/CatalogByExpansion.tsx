@@ -75,7 +75,6 @@ const CatalogByExpansion = () => {
             placeholder="Search cards..."
             value={cardSearch}
             onInputChange={onCardSearchChange}
-            onSearch={() => {}}
           />
         </SearchWrapper>
       )}
