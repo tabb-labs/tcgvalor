@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 // TODO: Remove after migrating postgres user IDs to new Auth0 tenant
-const AUTH0_ID_MAP: Record<string, string> = {
+export const AUTH0_ID_MAP: Record<string, string> = {
   'auth0|699345a6ba48e5b37b010271': 'auth0|66532576f4306b7b1fa27e04',
 }
 
