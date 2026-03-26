@@ -49,10 +49,12 @@ const authenticateWithBearerToken = async (authorizationHeader: string) => {
   const token = authorizationHeader.slice('Bearer '.length)
   const response = await fetch(`${ENV.AUTH_0.ISSUER_BASE_URL()}/userinfo`, {
     headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(5000),
   })
   if (!response.ok) return null
-  const userInfo = UserInfoSchema.parse(await response.json())
-  return { ...userInfo, sub: AUTH0_ID_MAP[userInfo.sub] ?? userInfo.sub }
+  const result = UserInfoSchema.safeParse(await response.json())
+  if (!result.success) return null
+  return { ...result.data, sub: AUTH0_ID_MAP[result.data.sub] ?? result.data.sub }
 }
 
 export const currentUserMiddleware = asyncHandler(async (req, _res, next) => {

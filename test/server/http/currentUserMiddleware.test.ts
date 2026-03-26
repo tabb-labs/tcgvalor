@@ -249,6 +249,26 @@ describe('currentUserMiddleware', () => {
       })
     })
 
+    describe('when Auth0 returns 200 with an unexpected body shape', () => {
+      beforeEach(() => {
+        mockFetch(true, { unexpected: 'shape' })
+        req = {
+          headers: { authorization: 'Bearer valid-token-123' },
+          oidc: { isAuthenticated: () => true, user: AUTH_0_USER_UNPARSED },
+        } as unknown as Request
+      })
+
+      it('should set currentUser to null even when a valid OIDC session exists', async () => {
+        await handler(req, res, next)
+        expect(req.currentUser).toBeNull()
+      })
+
+      it('should call next', async () => {
+        await handler(req, res, next)
+        expect(next).toHaveBeenCalled()
+      })
+    })
+
     describe('when the fetch throws', () => {
       const networkError = new Error('Network error')
 
