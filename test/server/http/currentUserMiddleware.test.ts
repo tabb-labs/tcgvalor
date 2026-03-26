@@ -234,11 +234,11 @@ describe('currentUserMiddleware', () => {
         mockFetch(false)
         req = {
           headers: { authorization: 'Bearer invalid-token' },
-          oidc: { isAuthenticated: () => false, user: null },
+          oidc: { isAuthenticated: () => true, user: AUTH_0_USER_UNPARSED },
         } as unknown as Request
       })
 
-      it('should set currentUser to null', async () => {
+      it('should set currentUser to null even when a valid OIDC session exists', async () => {
         await handler(req, res, next)
         expect(req.currentUser).toBeNull()
       })
@@ -250,18 +250,15 @@ describe('currentUserMiddleware', () => {
     })
 
     describe('when the fetch throws', () => {
+      const networkError = new Error('Network error')
+
       beforeEach(() => {
-        global.fetch = jest.fn().mockRejectedValue(new Error('Network error'))
+        global.fetch = jest.fn().mockRejectedValue(networkError)
       })
 
-      it('should set currentUser to null', async () => {
+      it('should propagate the error to next', async () => {
         await handler(req, res, next)
-        expect(req.currentUser).toBeNull()
-      })
-
-      it('should call next', async () => {
-        await handler(req, res, next)
-        expect(next).toHaveBeenCalled()
+        expect(next).toHaveBeenCalledWith(networkError)
       })
     })
   })

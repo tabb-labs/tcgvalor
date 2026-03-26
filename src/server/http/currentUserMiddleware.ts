@@ -14,13 +14,7 @@ const UserInfoSchema = z.object({
   email: z.string().nullable().optional(),
 })
 
-type UserData = {
-  sub: string
-  name?: string | null | undefined
-  nickname?: string | null | undefined
-  picture?: string | null | undefined
-  email?: string | null | undefined
-}
+type UserData = z.infer<typeof UserInfoSchema>
 
 const findOrCreateUser = async (data: UserData) => {
   let user = await prisma.user.findUnique({ where: { externalId: data.sub } })
@@ -65,18 +59,14 @@ export const currentUserMiddleware = asyncHandler(async (req, _res, next) => {
   const authorizationHeader = req.headers.authorization
 
   if (authorizationHeader?.startsWith('Bearer ')) {
-    try {
-      const userInfo = await authenticateWithBearerToken(authorizationHeader)
-      if (userInfo) {
-        req.currentUser = await findOrCreateUser(userInfo)
-        next()
-        return
-      }
-    } catch {
+    const userInfo = await authenticateWithBearerToken(authorizationHeader)
+    if (userInfo) {
+      req.currentUser = await findOrCreateUser(userInfo)
+    } else {
       req.currentUser = null
-      next()
-      return
     }
+    next()
+    return
   }
 
   if (!req.oidc.isAuthenticated() || !req.oidc.user) {
