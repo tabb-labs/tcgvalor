@@ -32,19 +32,17 @@ describe('e2e', () => {
 
     // Add/Remove card
     cy.get('#CardListSearch').type('abra')
-    cy.get('[id^="CardListItem-"]')
-      .first()
-      .then(($card) => {
-        const id = $card.attr('id')!
-        cy.get(`#${id}`).contains('Abra')
-        cy.get(`#${id}`).contains('Owned: 0')
-        cy.get(`#${id}`).contains('Add').click()
-        cy.get(`#${id}`).contains('Owned: 1')
-        cy.get(`#${id}`).contains('Remove').click()
-        cy.get(`#${id}`).contains('Owned: 0')
-        cy.get(`#${id}`).contains('Add').click()
-        cy.get(`#${id}`).contains('Owned: 1')
-      })
+    cy.contains('[id^="CardListItem-"]', 'Abra').then(($card) => {
+      const id = $card.attr('id')!
+      cy.get(`#${id}`).contains('Abra')
+      cy.get(`#${id}`).contains('Owned: 0')
+      cy.get(`#${id}`).contains('Add').click()
+      cy.get(`#${id}`).contains('Owned: 1')
+      cy.get(`#${id}`).contains('Remove').click()
+      cy.get(`#${id}`).contains('Owned: 0')
+      cy.get(`#${id}`).contains('Add').click()
+      cy.get(`#${id}`).contains('Owned: 1')
+    })
 
     // Add card in collection and check median price
     cy.get('#NavCollection').click()
