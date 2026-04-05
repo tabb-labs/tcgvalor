@@ -16,13 +16,13 @@ import CollectionFactory from '../domain/CollectionFactory'
 import PricesForExpansionUseCase from '../use-cases/price/PricesForExpansionUseCase'
 import { prisma } from '../../../prisma/prismaClient'
 import { asyncHandler } from '../http/asyncHandler'
-import { requiresAuth } from 'express-openid-connect'
+import { requiresAuthMiddleware } from '../http/requiresAuthMiddleware'
 
 const CollectionController = Router()
 
 CollectionController.get(
   '/',
-  requiresAuth(),
+  ...requiresAuthMiddleware,
   asyncHandler(async (req, res) => {
     const parsed = CollectionQueryParamsSchema.safeParse(req.query)
     if (!parsed.success) {
@@ -62,7 +62,7 @@ CollectionController.get(
 
 CollectionController.post(
   '/',
-  requiresAuth(),
+  ...requiresAuthMiddleware,
   asyncHandler(async (req, res) => {
     const parsed = AddUserCardBodySchema.safeParse(req.body)
     if (!parsed.success) {
@@ -94,7 +94,7 @@ CollectionController.post(
 
 CollectionController.delete(
   '/',
-  requiresAuth(),
+  ...requiresAuthMiddleware,
   asyncHandler(async (req, res) => {
     const parsed = RemoveUserCardBodySchema.safeParse(req.body)
     if (!parsed.success) {
