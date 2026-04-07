@@ -1,3 +1,4 @@
+import { auth as jwtAuth } from 'express-oauth2-jwt-bearer'
 import { Prisma } from '@prisma/client'
 import { prisma } from '../../../prisma/prismaClient'
 import { AUTH0_ID_MAP, parseAuth0User } from '../clients/Auth0/parseAuth0User'
@@ -45,29 +46,28 @@ const findOrCreateUser = async (data: UserData) => {
   return user
 }
 
-const authenticateWithBearerToken = async (authorizationHeader: string) => {
-  const token = authorizationHeader.slice('Bearer '.length)
-  const response = await fetch(`${ENV.AUTH_0.ISSUER_BASE_URL()}/userinfo`, {
-    headers: { Authorization: `Bearer ${token}` },
-    signal: AbortSignal.timeout(5000),
-  })
-  if (!response.ok) return null
-  const result = UserInfoSchema.safeParse(await response.json())
-  if (!result.success) return null
-  return { ...result.data, sub: AUTH0_ID_MAP[result.data.sub] ?? result.data.sub }
-}
+const validateBearerToken = jwtAuth({
+  issuerBaseURL: ENV.AUTH_0.ISSUER_BASE_URL(),
+  audience: ENV.AUTH_0.AUDIENCE,
+})
 
-export const currentUserMiddleware = asyncHandler(async (req, _res, next) => {
-  const authorizationHeader = req.headers.authorization
-
-  if (authorizationHeader?.startsWith('Bearer ')) {
-    const userInfo = await authenticateWithBearerToken(authorizationHeader)
-    if (userInfo) {
-      req.currentUser = await findOrCreateUser(userInfo)
-    } else {
-      req.currentUser = null
-    }
-    next()
+export const currentUserMiddleware = asyncHandler(async (req, res, next) => {
+  if (req.headers.authorization?.startsWith('Bearer ')) {
+    validateBearerToken(req, res, async (err) => {
+      if (err) {
+        req.currentUser = null
+        next()
+        return
+      }
+      const sub = req.auth?.payload.sub
+      if (sub) {
+        const externalId = AUTH0_ID_MAP[sub] ?? sub
+        req.currentUser = await findOrCreateUser({ sub: externalId })
+      } else {
+        req.currentUser = null
+      }
+      next()
+    })
     return
   }
 
