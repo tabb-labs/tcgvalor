@@ -11,6 +11,7 @@ export const ENV = {
     BASE_URL: () => validatedEnv('AUTH_BASE_URL', process.env.AUTH_BASE_URL),
     CLIENT_ID: () => validatedEnv('AUTH_CLIENT_ID', process.env.AUTH_CLIENT_ID),
     SECRET: () => validatedEnv('AUTH_SECRET', process.env.AUTH_SECRET),
+    AUDIENCE: 'https://api.tcgvalor.com',
   },
   CARD_TRADER: {
     CARD_TRADER_API_KEY: () => validatedEnv('CARD_TRADER_API_KEY', process.env.CARD_TRADER_API_KEY),
