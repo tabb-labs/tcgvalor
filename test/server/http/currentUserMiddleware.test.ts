@@ -37,6 +37,13 @@ const mockFindUnique = (prisma as unknown as { user: { findUnique: jest.Mock } }
 const mockCreate = (prisma as unknown as { user: { create: jest.Mock } }).user.create
 const mockParseAuth0User = jest.mocked(parseAuth0User)
 
+const mockFetch = (ok: boolean, body?: object) => {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok,
+    json: () => Promise.resolve(body),
+  })
+}
+
 describe('currentUserMiddleware', () => {
   let req: Request
   let res: Response
@@ -49,6 +56,7 @@ describe('currentUserMiddleware', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    global.fetch = jest.fn()
     mockEmailerSend = jest.spyOn(Emailer, 'send').mockResolvedValue('')
     mockStatus = jest.fn().mockReturnThis()
     mockJson = jest.fn()
@@ -179,6 +187,13 @@ describe('currentUserMiddleware', () => {
 
   describe('bearer token authentication', () => {
     const bearerSub = 'auth0|bearer-user-123'
+    const bearerProfile = {
+      sub: bearerSub,
+      name: 'Bearer User',
+      nickname: 'bearer',
+      picture: null,
+      email: 'bearer@test.com',
+    }
     const existingUser = makeProfileEntityMock({ externalId: bearerSub })
 
     beforeEach(() => {
@@ -186,14 +201,14 @@ describe('currentUserMiddleware', () => {
         headers: { authorization: 'Bearer valid-token-123' },
         oidc: { isAuthenticated: () => false, user: null },
       } as unknown as Request
+      mockValidateToken = (req, _res, next) => {
+        Object.assign(req, { auth: { payload: { sub: bearerSub } } })
+        next()
+      }
     })
 
     describe('when the token is valid and user exists', () => {
       beforeEach(() => {
-        mockValidateToken = (req, _res, next) => {
-          Object.assign(req, { auth: { payload: { sub: bearerSub } } })
-          next()
-        }
         mockFindUnique.mockResolvedValue(existingUser)
       })
 
@@ -211,24 +226,32 @@ describe('currentUserMiddleware', () => {
         await handler(req, res, next)
         expect(mockEmailerSend).not.toHaveBeenCalled()
       })
+
+      it('should not call userinfo', async () => {
+        await handler(req, res, next)
+        expect(global.fetch).not.toHaveBeenCalled()
+      })
     })
 
     describe('when the token is valid and user does not exist', () => {
       const newUser = makeProfileEntityMock({ externalId: bearerSub })
 
       beforeEach(() => {
-        mockValidateToken = (req, _res, next) => {
-          Object.assign(req, { auth: { payload: { sub: bearerSub } } })
-          next()
-        }
         mockFindUnique.mockResolvedValue(null)
         mockCreate.mockResolvedValue(newUser)
+        mockFetch(true, bearerProfile)
       })
 
-      it('should create a new user with sub only', async () => {
+      it('should create a new user with full profile from userinfo', async () => {
         await handler(req, res, next)
         expect(mockCreate).toHaveBeenCalledWith({
-          data: { externalId: bearerSub, email: '', name: '', nickname: '', picture: '' },
+          data: {
+            externalId: bearerSub,
+            email: bearerProfile.email,
+            name: bearerProfile.name,
+            nickname: bearerProfile.nickname,
+            picture: '',
+          },
         })
       })
 
@@ -242,7 +265,33 @@ describe('currentUserMiddleware', () => {
         expect(mockEmailerSend).toHaveBeenCalledWith({
           to: 'miketabb33@gmail.com',
           subject: 'Account Created',
-          text: 'Someone has created an account!',
+          text: `${bearerProfile.email} has created an account!`,
+        })
+      })
+
+      describe('when userinfo returns a non-ok response', () => {
+        beforeEach(() => {
+          mockFetch(false)
+        })
+
+        it('should create user with sub only', async () => {
+          await handler(req, res, next)
+          expect(mockCreate).toHaveBeenCalledWith({
+            data: { externalId: bearerSub, email: '', name: '', nickname: '', picture: '' },
+          })
+        })
+      })
+
+      describe('when userinfo returns an unexpected body shape', () => {
+        beforeEach(() => {
+          mockFetch(true, { unexpected: 'shape' })
+        })
+
+        it('should create user with sub only', async () => {
+          await handler(req, res, next)
+          expect(mockCreate).toHaveBeenCalledWith({
+            data: { externalId: bearerSub, email: '', name: '', nickname: '', picture: '' },
+          })
         })
       })
     })

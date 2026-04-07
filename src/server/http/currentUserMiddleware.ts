@@ -18,33 +18,51 @@ const UserInfoSchema = z.object({
 
 type UserData = z.infer<typeof UserInfoSchema>
 
-const findOrCreateUser = async (data: UserData) => {
-  let user = await prisma.user.findUnique({ where: { externalId: data.sub } })
-  if (!user) {
-    try {
-      user = await prisma.user.create({
-        data: {
-          externalId: data.sub,
-          email: data.email ?? '',
-          name: data.name ?? '',
-          nickname: data.nickname ?? '',
-          picture: data.picture ?? '',
-        },
-      })
-      void Emailer.send({
-        to: 'miketabb33@gmail.com',
-        subject: 'Account Created',
-        text: `${data.email ?? 'Someone'} has created an account!`,
-      })
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
-        user = await prisma.user.findUnique({ where: { externalId: data.sub } })
-      } else {
-        throw e
-      }
+const createUser = async (profile: UserData) => {
+  try {
+    const user = await prisma.user.create({
+      data: {
+        externalId: profile.sub,
+        email: profile.email ?? '',
+        name: profile.name ?? '',
+        nickname: profile.nickname ?? '',
+        picture: profile.picture ?? '',
+      },
+    })
+    void Emailer.send({
+      to: 'miketabb33@gmail.com',
+      subject: 'Account Created',
+      text: `${profile.email ?? 'Someone'} has created an account!`,
+    })
+    return user
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+      return prisma.user.findUnique({ where: { externalId: profile.sub } })
     }
+    throw e
   }
-  return user
+}
+
+const fetchUserInfo = async (token: string): Promise<UserData | null> => {
+  const response = await fetch(`${ENV.AUTH_0.ISSUER_BASE_URL()}/userinfo`, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(5000),
+  })
+  if (!response.ok) return null
+  const result = UserInfoSchema.safeParse(await response.json())
+  if (!result.success) return null
+  return { ...result.data, sub: AUTH0_ID_MAP[result.data.sub] ?? result.data.sub }
+}
+
+const findOrCreateOidcUser = async (profile: UserData) => {
+  return (await prisma.user.findUnique({ where: { externalId: profile.sub } })) ?? (await createUser(profile))
+}
+
+const findOrCreateBearerUser = async (sub: string, token: string) => {
+  const existing = await prisma.user.findUnique({ where: { externalId: sub } })
+  if (existing) return existing
+  const profile = (await fetchUserInfo(token)) ?? { sub }
+  return createUser(profile)
 }
 
 const jwtValidator = jwtAuth({
@@ -52,7 +70,7 @@ const jwtValidator = jwtAuth({
   audience: ENV.AUTH_0.AUDIENCE,
 })
 
-const getBearerUser = (req: Request, res: Response): Promise<UserData | null> =>
+const getBearerSub = (req: Request, res: Response): Promise<string | null> =>
   new Promise((resolve) => {
     jwtValidator(req, res, (err) => {
       if (err) {
@@ -60,11 +78,7 @@ const getBearerUser = (req: Request, res: Response): Promise<UserData | null> =>
         return
       }
       const sub = req.auth?.payload.sub
-      if (!sub) {
-        resolve(null)
-        return
-      }
-      resolve({ sub: AUTH0_ID_MAP[sub] ?? sub })
+      resolve(sub ? AUTH0_ID_MAP[sub] ?? sub : null)
     })
   })
 
@@ -76,16 +90,17 @@ const getOidcUser = (req: Request): UserData | null => {
 export const currentUserMiddleware = asyncHandler(async (req, res, next) => {
   const isBearerTokenRequest = req.headers.authorization?.startsWith('Bearer ')
   if (isBearerTokenRequest) {
-    const userData = await getBearerUser(req, res)
-    if (!userData) {
+    const sub = await getBearerSub(req, res)
+    if (!sub) {
       res.status(401).json({ errors: ['Invalid token'] })
       return
     }
-    req.currentUser = await findOrCreateUser(userData)
+    const token = req.headers.authorization!.slice('Bearer '.length)
+    req.currentUser = await findOrCreateBearerUser(sub, token)
     next()
   } else {
-    const userData = getOidcUser(req)
-    req.currentUser = userData ? await findOrCreateUser(userData) : null
+    const profile = getOidcUser(req)
+    req.currentUser = profile ? await findOrCreateOidcUser(profile) : null
     next()
   }
 })
