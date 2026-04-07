@@ -32,7 +32,7 @@ app.use('/api', currentUserMiddleware, ControllerRegistry)
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 app.get('/signup', async (req, res) => {
-  await res.oidc.login({ authorizationParams: { screen_hint: 'signup' } })
+  await res.oidc.login({ returnTo: '/', authorizationParams: { screen_hint: 'signup' } })
 })
 
 app.get('*', (_, res) => {
