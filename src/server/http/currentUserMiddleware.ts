@@ -1,4 +1,5 @@
 import { auth as jwtAuth } from 'express-oauth2-jwt-bearer'
+import { Request, Response } from 'express'
 import { Prisma } from '@prisma/client'
 import { prisma } from '../../../prisma/prismaClient'
 import { AUTH0_ID_MAP, parseAuth0User } from '../clients/Auth0/parseAuth0User'
@@ -46,38 +47,45 @@ const findOrCreateUser = async (data: UserData) => {
   return user
 }
 
-const validateBearerToken = jwtAuth({
+const jwtValidator = jwtAuth({
   issuerBaseURL: ENV.AUTH_0.ISSUER_BASE_URL(),
   audience: ENV.AUTH_0.AUDIENCE,
 })
 
-export const currentUserMiddleware = asyncHandler(async (req, res, next) => {
-  if (req.headers.authorization?.startsWith('Bearer ')) {
-    validateBearerToken(req, res, async (err) => {
+const getBearerUser = (req: Request, res: Response): Promise<UserData | null> =>
+  new Promise((resolve) => {
+    jwtValidator(req, res, (err) => {
       if (err) {
-        req.currentUser = null
-        next()
+        resolve(null)
         return
       }
       const sub = req.auth?.payload.sub
-      if (sub) {
-        const externalId = AUTH0_ID_MAP[sub] ?? sub
-        req.currentUser = await findOrCreateUser({ sub: externalId })
-      } else {
-        req.currentUser = null
+      if (!sub) {
+        resolve(null)
+        return
       }
-      next()
+      resolve({ sub: AUTH0_ID_MAP[sub] ?? sub })
     })
-    return
-  }
+  })
 
-  if (!req.oidc.isAuthenticated() || !req.oidc.user) {
-    req.currentUser = null
+const getOidcUser = (req: Request): UserData | null => {
+  if (!req.oidc.isAuthenticated() || !req.oidc.user) return null
+  return parseAuth0User(req.oidc.user)
+}
+
+export const currentUserMiddleware = asyncHandler(async (req, res, next) => {
+  const isBearerTokenRequest = req.headers.authorization?.startsWith('Bearer ')
+  if (isBearerTokenRequest) {
+    const userData = await getBearerUser(req, res)
+    if (!userData) {
+      res.status(401).json({ errors: ['Invalid token'] })
+      return
+    }
+    req.currentUser = await findOrCreateUser(userData)
     next()
-    return
+  } else {
+    const userData = getOidcUser(req)
+    req.currentUser = userData ? await findOrCreateUser(userData) : null
+    next()
   }
-
-  const auth0User = parseAuth0User(req.oidc.user)
-  req.currentUser = await findOrCreateUser(auth0User)
-  next()
 })

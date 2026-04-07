@@ -1,10 +1,17 @@
 import { Request, Response, NextFunction } from 'express'
+import { Prisma } from '@prisma/client'
 import { currentUserMiddleware } from '../../../src/server/http/currentUserMiddleware'
 import { makeProfileEntityMock } from '../__MOCKS__/profileEntity.mock'
 import { AUTH_0_USER, AUTH_0_USER_UNPARSED } from '../clients/Auth0/__MOCKS__/auth0User.mock'
 import { prisma } from '../../../prisma/prismaClient'
 import Emailer from '../../../src/server/Emailer'
 import { parseAuth0User } from '../../../src/server/clients/Auth0/parseAuth0User'
+
+let mockValidateToken: (req: Request, res: Response, next: NextFunction) => void
+
+jest.mock('express-oauth2-jwt-bearer', () => ({
+  auth: jest.fn(() => (req: Request, res: Response, next: NextFunction) => mockValidateToken(req, res, next)),
+}))
 
 jest.mock('../../../prisma/prismaClient', () => ({
   prisma: { user: { findUnique: jest.fn(), create: jest.fn() } },
@@ -18,7 +25,12 @@ jest.mock('../../../src/server/clients/Auth0/parseAuth0User', () => {
 })
 
 jest.mock('../../../src/server/env', () => ({
-  ENV: { AUTH_0: { ISSUER_BASE_URL: () => 'https://tcgvalor.us.auth0.com' } },
+  ENV: {
+    AUTH_0: {
+      ISSUER_BASE_URL: () => 'https://tcgvalor.us.auth0.com',
+      AUDIENCE: 'https://api.tcgvalor.com',
+    },
+  },
 }))
 
 const mockFindUnique = (prisma as unknown as { user: { findUnique: jest.Mock } }).user.findUnique
@@ -28,15 +40,19 @@ const mockParseAuth0User = jest.mocked(parseAuth0User)
 describe('currentUserMiddleware', () => {
   let req: Request
   let res: Response
-  let next: NextFunction
+  let next: jest.Mock
   let mockEmailerSend: jest.SpyInstance
+  let mockStatus: jest.Mock
+  let mockJson: jest.Mock
 
   const handler = currentUserMiddleware as (req: Request, res: Response, next: NextFunction) => Promise<void>
 
   beforeEach(() => {
     jest.clearAllMocks()
     mockEmailerSend = jest.spyOn(Emailer, 'send').mockResolvedValue('')
-    res = {} as Response
+    mockStatus = jest.fn().mockReturnThis()
+    mockJson = jest.fn()
+    res = { status: mockStatus, json: mockJson } as unknown as Response
     next = jest.fn()
   })
 
@@ -122,25 +138,48 @@ describe('currentUserMiddleware', () => {
       await handler(req, res, next)
       expect(next).toHaveBeenCalled()
     })
+
+    describe('when create throws a P2002 race condition', () => {
+      const racedUser = makeProfileEntityMock({ externalId: AUTH_0_USER.sub })
+      const p2002Error = new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+        code: 'P2002',
+        clientVersion: '0.0.0',
+      })
+
+      beforeEach(() => {
+        mockCreate.mockRejectedValue(p2002Error)
+        mockFindUnique.mockResolvedValueOnce(null).mockResolvedValueOnce(racedUser)
+      })
+
+      it('should fall back to findUnique and set currentUser', async () => {
+        await handler(req, res, next)
+        expect(req.currentUser).toEqual(racedUser)
+      })
+
+      it('should call next', async () => {
+        await handler(req, res, next)
+        expect(next).toHaveBeenCalled()
+      })
+    })
+
+    describe('when create throws a non-P2002 error', () => {
+      const dbError = new Error('Connection lost')
+
+      beforeEach(() => {
+        mockFindUnique.mockResolvedValue(null)
+        mockCreate.mockRejectedValue(dbError)
+      })
+
+      it('should propagate the error to next', async () => {
+        await handler(req, res, next)
+        expect(next).toHaveBeenCalledWith(dbError)
+      })
+    })
   })
 
   describe('bearer token authentication', () => {
     const bearerSub = 'auth0|bearer-user-123'
-    const bearerUserInfo = {
-      sub: bearerSub,
-      name: 'Bearer User',
-      nickname: 'bearer',
-      picture: null,
-      email: 'bearer@test.com',
-    }
     const existingUser = makeProfileEntityMock({ externalId: bearerSub })
-
-    const mockFetch = (ok: boolean, body?: object) => {
-      global.fetch = jest.fn().mockResolvedValue({
-        ok,
-        json: () => Promise.resolve(body ?? bearerUserInfo),
-      })
-    }
 
     beforeEach(() => {
       req = {
@@ -151,7 +190,10 @@ describe('currentUserMiddleware', () => {
 
     describe('when the token is valid and user exists', () => {
       beforeEach(() => {
-        mockFetch(true)
+        mockValidateToken = (req, _res, next) => {
+          Object.assign(req, { auth: { payload: { sub: bearerSub } } })
+          next()
+        }
         mockFindUnique.mockResolvedValue(existingUser)
       })
 
@@ -175,21 +217,18 @@ describe('currentUserMiddleware', () => {
       const newUser = makeProfileEntityMock({ externalId: bearerSub })
 
       beforeEach(() => {
-        mockFetch(true)
+        mockValidateToken = (req, _res, next) => {
+          Object.assign(req, { auth: { payload: { sub: bearerSub } } })
+          next()
+        }
         mockFindUnique.mockResolvedValue(null)
         mockCreate.mockResolvedValue(newUser)
       })
 
-      it('should create a new user', async () => {
+      it('should create a new user with sub only', async () => {
         await handler(req, res, next)
         expect(mockCreate).toHaveBeenCalledWith({
-          data: {
-            externalId: bearerSub,
-            email: bearerUserInfo.email,
-            name: bearerUserInfo.name,
-            nickname: bearerUserInfo.nickname,
-            picture: '',
-          },
+          data: { externalId: bearerSub, email: '', name: '', nickname: '', picture: '' },
         })
       })
 
@@ -203,7 +242,7 @@ describe('currentUserMiddleware', () => {
         expect(mockEmailerSend).toHaveBeenCalledWith({
           to: 'miketabb33@gmail.com',
           subject: 'Account Created',
-          text: `${bearerUserInfo.email} has created an account!`,
+          text: 'Someone has created an account!',
         })
       })
     })
@@ -214,7 +253,10 @@ describe('currentUserMiddleware', () => {
       const mappedUser = makeProfileEntityMock({ externalId: mappedSub })
 
       beforeEach(() => {
-        mockFetch(true, { ...bearerUserInfo, sub: oldSub })
+        mockValidateToken = (req, _res, next) => {
+          Object.assign(req, { auth: { payload: { sub: oldSub } } })
+          next()
+        }
         mockFindUnique.mockResolvedValue(mappedUser)
       })
 
@@ -229,56 +271,42 @@ describe('currentUserMiddleware', () => {
       })
     })
 
-    describe('when Auth0 rejects the token', () => {
+    describe('when the token is invalid', () => {
       beforeEach(() => {
-        mockFetch(false)
-        req = {
-          headers: { authorization: 'Bearer invalid-token' },
-          oidc: { isAuthenticated: () => true, user: AUTH_0_USER_UNPARSED },
-        } as unknown as Request
+        mockValidateToken = (_req, _res, next) => {
+          next(new Error('Unauthorized'))
+        }
       })
 
-      it('should set currentUser to null even when a valid OIDC session exists', async () => {
+      it('should respond with 401', async () => {
         await handler(req, res, next)
-        expect(req.currentUser).toBeNull()
+        expect(mockStatus).toHaveBeenCalledWith(401)
+        expect(mockJson).toHaveBeenCalledWith({ errors: ['Invalid token'] })
       })
 
-      it('should call next', async () => {
+      it('should not call next', async () => {
         await handler(req, res, next)
-        expect(next).toHaveBeenCalled()
+        expect(next).not.toHaveBeenCalled()
       })
     })
 
-    describe('when Auth0 returns 200 with an unexpected body shape', () => {
+    describe('when the token is valid but sub is missing from payload', () => {
       beforeEach(() => {
-        mockFetch(true, { unexpected: 'shape' })
-        req = {
-          headers: { authorization: 'Bearer valid-token-123' },
-          oidc: { isAuthenticated: () => true, user: AUTH_0_USER_UNPARSED },
-        } as unknown as Request
+        mockValidateToken = (req, _res, next) => {
+          Object.assign(req, { auth: { payload: {} } })
+          next()
+        }
       })
 
-      it('should set currentUser to null even when a valid OIDC session exists', async () => {
+      it('should respond with 401', async () => {
         await handler(req, res, next)
-        expect(req.currentUser).toBeNull()
+        expect(mockStatus).toHaveBeenCalledWith(401)
+        expect(mockJson).toHaveBeenCalledWith({ errors: ['Invalid token'] })
       })
 
-      it('should call next', async () => {
+      it('should not call next', async () => {
         await handler(req, res, next)
-        expect(next).toHaveBeenCalled()
-      })
-    })
-
-    describe('when the fetch throws', () => {
-      const networkError = new Error('Network error')
-
-      beforeEach(() => {
-        global.fetch = jest.fn().mockRejectedValue(networkError)
-      })
-
-      it('should propagate the error to next', async () => {
-        await handler(req, res, next)
-        expect(next).toHaveBeenCalledWith(networkError)
+        expect(next).not.toHaveBeenCalled()
       })
     })
   })
