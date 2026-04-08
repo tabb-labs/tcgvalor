@@ -23,6 +23,7 @@ const ProfileContext = createContext<ProfileContextType>({
     name: '',
     nickname: '',
     picture: null,
+    subscription: null,
   },
   isLoading: false,
   isLoggedIn: false,

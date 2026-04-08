@@ -1,3 +1,5 @@
+import { SubscriptionDto } from './subscription'
+
 export type ProfileDto = {
   id: number
   shareToken: string
@@ -5,4 +7,5 @@ export type ProfileDto = {
   name: string
   nickname: string
   picture: string | null
+  subscription: SubscriptionDto | null
 }

@@ -5,6 +5,7 @@ import CatalogController from './controllers/CatalogController'
 import StoreController from './controllers/StoreController'
 import ReleaseController from './controllers/ReleaseController'
 import EmailController from './controllers/EmailController'
+import SubscriptionController from './controllers/SubscriptionController'
 
 const ControllerRegistry = Router()
 
@@ -14,6 +15,7 @@ ControllerRegistry.use('/collection', CollectionController)
 ControllerRegistry.use('/store', StoreController)
 ControllerRegistry.use('/release', ReleaseController)
 ControllerRegistry.use('/email', EmailController)
+ControllerRegistry.use('/subscriptions', SubscriptionController)
 
 ControllerRegistry.get('*', (_, res) => res.send('Nothing here'))
 
