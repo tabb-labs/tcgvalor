@@ -97,7 +97,8 @@ model User {
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
-  userCards  UserCard[]
+  userCards     UserCard[]
+  subscriptions Subscription[]
 
   @@map("user")
 }
@@ -164,6 +165,39 @@ model CardBlueprintMarketValue {
   cardBlueprint          CardBlueprint @relation(fields: [cardBlueprintId], references: [id])
 
   @@map("card_blueprint_market_value")
+}
+
+enum SubscriptionTier {
+  PRO
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+enum SubscriptionSource {
+  IOS_APPSTORE
+  MANUAL
+}
+
+model Subscription {
+  id        Int                @id @default(autoincrement())
+  userId    Int                @map("user_id")
+  tier      SubscriptionTier
+  status    SubscriptionStatus
+  source    SubscriptionSource
+  expiresAt DateTime?          @map("expires_at")
+
+  appleOriginalTransactionId String? @unique @map("apple_original_transaction_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("subscription")
 }
 
 model ExpansionPlatformLink {

@@ -7,4 +7,5 @@ export const PROFILE_DTO: ProfileDto = {
   nickname: '',
   email: null,
   picture: null,
+  subscription: null,
 }
