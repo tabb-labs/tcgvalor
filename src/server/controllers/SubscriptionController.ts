@@ -1,10 +1,14 @@
+import { z } from 'zod'
 import { Router } from 'express'
 import { asyncHandler } from '../http/asyncHandler'
 import { requiresAuthMiddleware } from '../http/requiresAuthMiddleware'
-import { VerifyAppStoreBodySchema } from '@core/network-types/subscription'
 import VerifyAppStorePurchaseUseCase from '../use-cases/subscription/VerifyAppStorePurchaseUseCase'
 import SubscriptionRepo from '../repository/SubscriptionRepo'
 import AppleTransactionVerifier from '../clients/Apple/AppleTransactionVerifier'
+
+const VerifyAppStoreBodySchema = z.object({
+  signedTransaction: z.string().min(1),
+})
 
 const SubscriptionController = Router()
 
