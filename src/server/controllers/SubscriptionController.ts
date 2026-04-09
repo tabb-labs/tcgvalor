@@ -4,6 +4,7 @@ import { requiresAuthMiddleware } from '../http/requiresAuthMiddleware'
 import { VerifyAppStoreBodySchema } from '@core/network-types/subscription'
 import VerifyAppStorePurchaseUseCase from '../use-cases/subscription/VerifyAppStorePurchaseUseCase'
 import SubscriptionRepo from '../repository/SubscriptionRepo'
+import AppleTransactionVerifier from '../clients/Apple/AppleTransactionVerifier'
 
 const SubscriptionController = Router()
 
@@ -17,7 +18,7 @@ SubscriptionController.post(
       return
     }
 
-    const useCase = new VerifyAppStorePurchaseUseCase(new SubscriptionRepo())
+    const useCase = new VerifyAppStorePurchaseUseCase(new SubscriptionRepo(), new AppleTransactionVerifier())
     const result = await useCase.call(req.currentUser!.id, parsed.data.signedTransaction)
 
     if (result.isSuccess()) {

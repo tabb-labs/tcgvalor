@@ -32,4 +32,9 @@ export const ENV = {
     PASSWORD: () => validatedEnv('EMAILER_PASSWORD', process.env.EMAILER_PASSWORD),
   },
   HONEY_BADGER: () => validatedEnv('HONEY_BADGER', process.env.HONEY_BADGER),
+  APPLE: {
+    BUNDLE_ID: () => validatedEnv('APPLE_BUNDLE_ID', process.env.APPLE_BUNDLE_ID),
+    APP_APPLE_ID: () => validatedEnv('APPLE_APP_APPLE_ID', process.env.APPLE_APP_APPLE_ID),
+    ROOT_CERTS_BASE64: () => validatedEnv('APPLE_ROOT_CERTS_BASE64', process.env.APPLE_ROOT_CERTS_BASE64),
+  },
 }
