@@ -5,3 +5,8 @@ export type SubscriptionDto = {
   status: 'ACTIVE' | 'CANCELLED' | 'EXPIRED'
   expiresAt: string | null
 }
+
+export type EntitlementDto = {
+  isActive: boolean
+  cardLimit: number | null
+}
