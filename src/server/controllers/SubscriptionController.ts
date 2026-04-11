@@ -3,6 +3,7 @@ import { Router } from 'express'
 import { asyncHandler } from '../http/asyncHandler'
 import { requiresAuthMiddleware } from '../http/requiresAuthMiddleware'
 import VerifyAppStorePurchaseUseCase from '../use-cases/subscription/VerifyAppStorePurchaseUseCase'
+import GetEntitlementsUseCase from '../use-cases/subscription/GetEntitlementsUseCase'
 import SubscriptionRepo from '../repository/SubscriptionRepo'
 import AppleTransactionVerifier from '../clients/Apple/AppleTransactionVerifier'
 
@@ -30,6 +31,16 @@ SubscriptionController.post(
     } else {
       res.sendError({ errors: [result.error], status: 400 })
     }
+  })
+)
+
+SubscriptionController.get(
+  '/entitlements',
+  ...requiresAuthMiddleware,
+  asyncHandler(async (req, res) => {
+    const useCase = new GetEntitlementsUseCase(new SubscriptionRepo())
+    const result = await useCase.call(req.currentUser!.id)
+    res.sendData({ data: result })
   })
 )
 
