@@ -4,11 +4,17 @@ import { asyncHandler } from '../http/asyncHandler'
 import { requiresAuthMiddleware } from '../http/requiresAuthMiddleware'
 import VerifyAppStorePurchaseUseCase from '../use-cases/subscription/VerifyAppStorePurchaseUseCase'
 import GetEntitlementsUseCase from '../use-cases/subscription/GetEntitlementsUseCase'
+import HandleAppStoreNotificationUseCase from '../use-cases/subscription/HandleAppStoreNotificationUseCase'
 import SubscriptionRepo from '../repository/SubscriptionRepo'
 import AppleTransactionVerifier from '../clients/Apple/AppleTransactionVerifier'
+import AppleNotificationVerifier from '../clients/Apple/AppleNotificationVerifier'
 
 const VerifyAppStoreBodySchema = z.object({
   signedTransaction: z.string().min(1),
+})
+
+const AppStoreNotificationBodySchema = z.object({
+  signedPayload: z.string().min(1),
 })
 
 const SubscriptionController = Router()
@@ -31,6 +37,18 @@ SubscriptionController.post(
     } else {
       res.sendError({ errors: [result.error], status: 400 })
     }
+  })
+)
+
+SubscriptionController.post(
+  '/notifications/appstore',
+  asyncHandler(async (req, res) => {
+    const parsed = AppStoreNotificationBodySchema.safeParse(req.body)
+    if (parsed.success) {
+      const useCase = new HandleAppStoreNotificationUseCase(new AppleNotificationVerifier(), new SubscriptionRepo())
+      await useCase.call(parsed.data.signedPayload)
+    }
+    res.status(200).send()
   })
 )
 
