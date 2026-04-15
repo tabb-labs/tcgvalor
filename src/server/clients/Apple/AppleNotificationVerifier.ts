@@ -1,5 +1,6 @@
 import { SignedDataVerifier, Environment, NotificationTypeV2 } from '@apple/app-store-server-library'
 import { ENV } from '../../env'
+import Logger from '../../logger'
 
 export type AppleNotificationPayload = {
   notificationType: NotificationTypeV2
@@ -45,7 +46,9 @@ class AppleNotificationVerifier implements IAppleNotificationVerifier {
         originalTransactionId: transaction.originalTransactionId,
         expiresDate: transaction.expiresDate,
       }
-    } catch {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      Logger.error(`AppleNotificationVerifier: ${message}`)
       return null
     }
   }
