@@ -111,10 +111,14 @@ describe('SubscriptionRepo', () => {
 
       await repo.findActiveForUser(42)
 
-      expect(FIND_FIRST).toHaveBeenCalledWith({
-        where: { userId: 42, status: 'ACTIVE' },
-        orderBy: { createdAt: 'desc' },
-      })
+      const [args] = FIND_FIRST.mock.calls[0] as [
+        { where: { userId: number; status: string; OR: unknown[] }; orderBy: unknown },
+      ]
+      expect(args.where.userId).toBe(42)
+      expect(args.where.status).toBe('ACTIVE')
+      expect(args.where.OR[0]).toEqual({ expiresAt: null })
+      expect((args.where.OR[1] as { expiresAt: { gt: unknown } }).expiresAt.gt).toBeInstanceOf(Date)
+      expect(args.orderBy).toEqual({ createdAt: 'desc' })
     })
 
     it('returns the active subscription when found', async () => {

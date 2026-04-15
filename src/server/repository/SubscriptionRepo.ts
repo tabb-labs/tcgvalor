@@ -4,6 +4,7 @@ import { prisma } from '../../../prisma/prismaClient'
 export interface ISubscriptionRepo {
   findByAppleOriginalTransactionId: (id: string) => Promise<Subscription | null>
   activateExisting: (id: number, expiresAt: Date | null) => Promise<Subscription>
+  deactivate: (id: number, status: 'EXPIRED' | 'CANCELLED') => Promise<Subscription>
   createFromAppStore: (params: {
     userId: number
     tier: SubscriptionTier
@@ -21,6 +22,12 @@ class SubscriptionRepo implements ISubscriptionRepo {
     prisma.subscription.update({
       where: { id },
       data: { status: 'ACTIVE', expiresAt },
+    })
+
+  deactivate = (id: number, status: 'EXPIRED' | 'CANCELLED') =>
+    prisma.subscription.update({
+      where: { id },
+      data: { status },
     })
 
   createFromAppStore = ({
@@ -47,7 +54,11 @@ class SubscriptionRepo implements ISubscriptionRepo {
 
   findActiveForUser = (userId: number) =>
     prisma.subscription.findFirst({
-      where: { userId, status: 'ACTIVE' },
+      where: {
+        userId,
+        status: 'ACTIVE',
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
       orderBy: { createdAt: 'desc' },
     })
 }

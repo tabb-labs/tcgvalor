@@ -3,11 +3,13 @@ import { ISubscriptionRepo } from '../../../src/server/repository/SubscriptionRe
 class SubscriptionRepo_FAKE implements ISubscriptionRepo {
   FIND_BY_APPLE_ORIGINAL_TRANSACTION_ID = jest.fn()
   ACTIVATE_EXISTING = jest.fn()
+  DEACTIVATE = jest.fn()
   CREATE_FROM_APP_STORE = jest.fn()
   FIND_ACTIVE_FOR_USER = jest.fn()
 
   findByAppleOriginalTransactionId = this.FIND_BY_APPLE_ORIGINAL_TRANSACTION_ID
   activateExisting = this.ACTIVATE_EXISTING
+  deactivate = this.DEACTIVATE
   createFromAppStore = this.CREATE_FROM_APP_STORE
   findActiveForUser = this.FIND_ACTIVE_FOR_USER
 }
