@@ -153,7 +153,7 @@ describe('CardBlueprintPokemonRepo', () => {
         include: {
           platformLinks: true,
           marketValue: true,
-          expansion: { include: { platformLinks: true } },
+          expansion: { include: { platformLinks: true, pokemonExpansion: true } },
           userCards: { where: { userId: -1 } },
         },
         orderBy: { marketValue: { medianMarketValueCents: 'desc' } },

@@ -9,7 +9,7 @@ export type CardBlueprintWithExpansionAndValue = Prisma.CardBlueprintGetPayload<
   include: {
     platformLinks: true
     marketValue: true
-    expansion: { include: { platformLinks: true } }
+    expansion: { include: { platformLinks: true; pokemonExpansion: true } }
     userCards: true
   }
 }>
@@ -68,7 +68,7 @@ class CardBlueprintPokemonRepo implements ICardBlueprintPokemonRepo {
       include: {
         platformLinks: true,
         marketValue: true,
-        expansion: { include: { platformLinks: true } },
+        expansion: { include: { platformLinks: true, pokemonExpansion: true } },
         userCards: { where: { userId: userId ?? -1 } },
       },
       orderBy: { marketValue: { medianMarketValueCents: 'desc' } },

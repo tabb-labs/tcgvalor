@@ -6,6 +6,8 @@ const makeBlueprint = (
   overrides: Partial<{
     name: string
     expansionName: string
+    expansionAbbreviation: string | null
+    collectorNumber: string
     blueprintExternalId: string
     expansionExternalId: string
     medianMarketValueCents: number
@@ -17,6 +19,7 @@ const makeBlueprint = (
 ): CardBlueprintWithExpansionAndValue =>
   ({
     name: overrides.name ?? 'Charizard',
+    collectorNumber: overrides.collectorNumber ?? '004/102',
     imagePreviewUrl: 'preview-url',
     imageShowUrl: 'show-url',
     platformLinks: overrides.platformLinks ?? [
@@ -25,6 +28,8 @@ const makeBlueprint = (
     expansion: {
       name: overrides.expansionName ?? 'Base Set',
       platformLinks: [{ platform: 'CARD_TRADER', externalId: overrides.expansionExternalId ?? '200' }],
+      pokemonExpansion:
+        overrides.expansionAbbreviation !== null ? { abbreviation: overrides.expansionAbbreviation ?? 'BS' } : null,
     },
     marketValue:
       overrides.marketValue !== undefined
@@ -122,5 +127,23 @@ describe('SearchCatalogByNameUseCase', () => {
     expect(result).toHaveLength(2)
     expect(result[0].name).toBe('Charizard')
     expect(result[1].name).toBe('Charmeleon')
+  })
+
+  it('should map pokemonExpansion abbreviation to expansionAbbreviation', async () => {
+    repo.SEARCH_BY_NAME.mockResolvedValue([makeBlueprint({ expansionAbbreviation: 'PFL' })])
+    const result = await useCase.call('Pawmot')
+    expect(result[0].expansionAbbreviation).toBe('PFL')
+  })
+
+  it('should fall back to empty string when pokemonExpansion is null', async () => {
+    repo.SEARCH_BY_NAME.mockResolvedValue([makeBlueprint({ expansionAbbreviation: null })])
+    const result = await useCase.call('Charizard')
+    expect(result[0].expansionAbbreviation).toBe('')
+  })
+
+  it('should map collectorNumber from blueprint', async () => {
+    repo.SEARCH_BY_NAME.mockResolvedValue([makeBlueprint({ collectorNumber: '034/094' })])
+    const result = await useCase.call('Pawmot')
+    expect(result[0].collectorNumber).toBe('034/094')
   })
 })

@@ -4,6 +4,8 @@ export const CARD_DTO: CardDto = {
   blueprintId: 0,
   expansionId: 0,
   expansionName: '',
+  expansionAbbreviation: '',
+  collectorNumber: '',
   name: '',
   imageUrlPreview: '',
   imageUrlShow: '',
