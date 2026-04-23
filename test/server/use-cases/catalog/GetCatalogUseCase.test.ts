@@ -80,6 +80,8 @@ describe('Get Catalog UseCase', () => {
         blueprintId: 1,
         expansionId: 2,
         expansionName: 'Base Set',
+        expansionAbbreviation: '',
+        collectorNumber: '',
         name: 'name',
         imageUrlPreview: 'preview',
         imageUrlShow: 'show',

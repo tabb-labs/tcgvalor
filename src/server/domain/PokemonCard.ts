@@ -4,8 +4,9 @@ class PokemonCard {
   readonly cardTraderBlueprintId: number
   readonly cardTraderExpansionId: number
   readonly expansionName: string
-  readonly name: string
+  readonly expansionAbbreviation: string
   readonly collectorNumber: string
+  readonly name: string
   readonly pokemonRarity: string
   readonly imageUrlPreview: string
   readonly imageUrlShow: string
@@ -17,8 +18,9 @@ class PokemonCard {
     cardTraderBlueprintId: number
     cardTraderExpansionId: number
     expansionName?: string
-    name: string
+    expansionAbbreviation?: string
     collectorNumber: string
+    name: string
     pokemonRarity: string
     imageUrlPreview: string
     imageUrlShow: string
@@ -29,8 +31,9 @@ class PokemonCard {
     this.cardTraderBlueprintId = data.cardTraderBlueprintId
     this.cardTraderExpansionId = data.cardTraderExpansionId
     this.expansionName = data.expansionName ?? ''
-    this.name = data.name
+    this.expansionAbbreviation = data.expansionAbbreviation ?? ''
     this.collectorNumber = data.collectorNumber
+    this.name = data.name
     this.pokemonRarity = data.pokemonRarity
     this.imageUrlPreview = data.imageUrlPreview
     this.imageUrlShow = data.imageUrlShow
@@ -43,6 +46,8 @@ class PokemonCard {
     blueprintId: this.cardTraderBlueprintId,
     expansionId: this.cardTraderExpansionId,
     expansionName: this.expansionName,
+    expansionAbbreviation: this.expansionAbbreviation,
+    collectorNumber: this.collectorNumber,
     name: this.name,
     imageUrlPreview: this.imageUrlPreview,
     imageUrlShow: this.imageUrlShow,
