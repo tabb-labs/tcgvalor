@@ -103,6 +103,15 @@ class CardBlueprintPokemonRepo implements ICardBlueprintPokemonRepo {
         },
       })
 
+      await tx.cardBlueprintMarketValue.create({
+        data: {
+          cardBlueprintId: cardBlueprint.id,
+          medianMarketValueCents: 0,
+          listingCount: 0,
+          fetchedAt: new Date(),
+        },
+      })
+
       return cardBlueprint.id
     })
   }

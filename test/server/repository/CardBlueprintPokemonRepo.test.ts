@@ -203,6 +203,7 @@ describe('CardBlueprintPokemonRepo', () => {
       cardBlueprint: { create: jest.fn() },
       cardBlueprintPokemon: { create: jest.fn() },
       cardBlueprintPlatformLink: { create: jest.fn() },
+      cardBlueprintMarketValue: { create: jest.fn() },
     }
 
     beforeEach(() => {

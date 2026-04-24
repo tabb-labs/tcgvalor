@@ -104,11 +104,11 @@ describe('SearchCatalogByNameUseCase', () => {
     expect(result[0].listingCount).toBe(42)
   })
 
-  it('should fall back to -1 when market value is missing', async () => {
+  it('should fall back to 0 when market value is missing', async () => {
     repo.SEARCH_BY_NAME.mockResolvedValue([makeBlueprint({ marketValue: null })])
     const result = await useCase.call('Charizard')
-    expect(result[0].medianMarketValueCents).toBe(-1)
-    expect(result[0].listingCount).toBe(-1)
+    expect(result[0].medianMarketValueCents).toBe(0)
+    expect(result[0].listingCount).toBe(0)
   })
 
   it('should map userCards from blueprint', async () => {
