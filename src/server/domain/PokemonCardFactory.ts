@@ -78,8 +78,8 @@ class PokemonCardFactory implements IPokemonCardFactory {
         pokemonRarity: b.pokemonCardBlueprint?.rarity ?? '',
         imageUrlPreview: b.imagePreviewUrl,
         imageUrlShow: b.imageShowUrl,
-        medianMarketValueCents: price?.medianCents ?? -1,
-        listingCount: price?.listingCount ?? -1,
+        medianMarketValueCents: price?.medianCents ?? 0,
+        listingCount: price?.listingCount ?? 0,
         userCards: userCardsByBlueprintId.get(blueprintId) ?? [],
       })
     })
@@ -106,8 +106,8 @@ class PokemonCardFactory implements IPokemonCardFactory {
         pokemonRarity: b.fixedProperties.pokemonRarity,
         imageUrlPreview: b.image.preview.url,
         imageUrlShow: b.image.show.url,
-        medianMarketValueCents: price?.medianCents ?? -1,
-        listingCount: price?.listingCount ?? -1,
+        medianMarketValueCents: price?.medianCents ?? 0,
+        listingCount: price?.listingCount ?? 0,
         userCards: userCardsByBlueprintId.get(b.id) ?? [],
       })
     })

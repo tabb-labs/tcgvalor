@@ -44,7 +44,6 @@ class CollectionFactory implements ICollectionFactory {
   private blueprintToCardDto = (blueprint: CardBlueprintWithUserCards): CardDto => {
     const blueprintLink = blueprint.platformLinks.find((l) => l.platform === 'CARD_TRADER')
     const expansionLink = blueprint.expansion.platformLinks.find((l) => l.platform === 'CARD_TRADER')
-    const marketValue = blueprint.marketValue
     return new PokemonCard({
       cardTraderBlueprintId: Number(blueprintLink?.externalId ?? -1),
       cardTraderExpansionId: Number(expansionLink?.externalId ?? -1),
@@ -54,8 +53,8 @@ class CollectionFactory implements ICollectionFactory {
       pokemonRarity: '',
       imageUrlPreview: blueprint.imagePreviewUrl,
       imageUrlShow: blueprint.imageShowUrl,
-      medianMarketValueCents: marketValue?.medianMarketValueCents ?? -1,
-      listingCount: marketValue?.listingCount ?? -1,
+      medianMarketValueCents: blueprint.marketValue?.medianMarketValueCents ?? 0,
+      listingCount: blueprint.marketValue?.listingCount ?? 0,
       userCards: blueprint.userCards.map((uc) => ({ id: uc.id, condition: uc.condition })),
     }).toCardDto()
   }

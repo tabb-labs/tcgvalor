@@ -62,7 +62,7 @@ type CardItemProps = {
 }
 
 const CardItem = ({ cardDto, id, isEditable = true, refreshCards = () => {} }: CardItemProps) => {
-  const { formattedMedian, formattedListingCount, showOwnedCount, showActions, openEnlargedImage } = useInCardItem(
+  const { formattedMedian, listingText, showOwnedCount, showActions, openEnlargedImage } = useInCardItem(
     cardDto,
     isEditable
   )
@@ -83,7 +83,7 @@ const CardItem = ({ cardDto, id, isEditable = true, refreshCards = () => {} }: C
             <h3>
               Value: <Price>{formattedMedian}</Price>
             </h3>
-            <ListingText>Based on {formattedListingCount} Listings.</ListingText>
+            <ListingText>{listingText}</ListingText>
           </PriceWell>
 
           <>
@@ -110,10 +110,15 @@ export const useInCardItem = (cardDto: CardDto, isEditable: boolean) => {
     return formatCentsToDollars(cents)
   }
 
+  const listingText =
+    cardDto.listingCount === 0
+      ? 'No listings available.'
+      : `Based on ${formatWithCommas(cardDto.listingCount)} Listings.`
+
   return {
     isLoggedIn,
     formattedMedian: formatValue(cardDto.medianMarketValueCents),
-    formattedListingCount: formatWithCommas(cardDto.listingCount),
+    listingText,
     showOwnedCount: isLoggedIn || !isEditable,
     showActions: isLoggedIn && isEditable,
     openEnlargedImage,

@@ -25,8 +25,8 @@ class SearchCatalogByNameUseCase {
         pokemonRarity: '',
         imageUrlPreview: b.imagePreviewUrl,
         imageUrlShow: b.imageShowUrl,
-        medianMarketValueCents: b.marketValue?.medianMarketValueCents ?? -1,
-        listingCount: b.marketValue?.listingCount ?? -1,
+        medianMarketValueCents: b.marketValue?.medianMarketValueCents ?? 0,
+        listingCount: b.marketValue?.listingCount ?? 0,
         userCards: b.userCards.map((uc) => ({ id: uc.id, condition: uc.condition })),
       }).toCardDto()
     })
