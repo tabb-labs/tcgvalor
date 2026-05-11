@@ -1,7 +1,7 @@
 import { EntitlementDto } from '@core/network-types/subscription'
 import { ISubscriptionRepo } from '../../repository/SubscriptionRepo'
 
-const FREE_CARD_LIMIT = 100
+const FREE_CARD_LIMIT = 1000
 
 class GetEntitlementsUseCase {
   private readonly subscriptionRepo: ISubscriptionRepo
