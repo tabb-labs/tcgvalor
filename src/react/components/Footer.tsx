@@ -39,9 +39,7 @@ const Footer = () => {
         </div>
 
         <div>
-          <ExternalTextLink href="https://www.termsfeed.com/live/d4f4a987-fd96-436a-9fbb-42f7577536cc">
-            Privacy Policy
-          </ExternalTextLink>
+          <InternalTextLink pathValue={PATH_VALUES.privacyPolicy} label="Privacy Policy" />
         </div>
 
         <div>

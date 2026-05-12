@@ -22,4 +22,5 @@ export const PATH_VALUES = {
   collection,
   series: '/series',
   developerNotes: '/developer-notes',
+  privacyPolicy: '/privacy-policy',
 }
