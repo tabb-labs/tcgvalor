@@ -4,8 +4,24 @@ import { ProfileDto } from '@core/network-types/profile'
 import { asyncHandler } from '../http/asyncHandler'
 import { encodeShareToken } from '../use-cases/collection/ShareToken'
 import SubscriptionRepo from '../repository/SubscriptionRepo'
+import { requiresAuthMiddleware } from '../http/requiresAuthMiddleware'
+import { prisma } from '../../../prisma/prismaClient'
 
 const ProfileController = Router()
+
+ProfileController.delete(
+  '/',
+  ...requiresAuthMiddleware,
+  asyncHandler(async (req, res) => {
+    const userId = req.currentUser!.id
+    await prisma.$transaction([
+      prisma.userCard.deleteMany({ where: { userId } }),
+      prisma.subscription.deleteMany({ where: { userId } }),
+      prisma.user.delete({ where: { id: userId } }),
+    ])
+    res.sendSuccess()
+  })
+)
 
 ProfileController.get(
   '/',
