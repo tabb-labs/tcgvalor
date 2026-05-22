@@ -8,6 +8,7 @@ import HandleAppStoreNotificationUseCase from '../use-cases/subscription/HandleA
 import SubscriptionRepo from '../repository/SubscriptionRepo'
 import AppleTransactionVerifier from '../clients/Apple/AppleTransactionVerifier'
 import AppleNotificationVerifier from '../clients/Apple/AppleNotificationVerifier'
+import Logger from '../logger'
 
 const VerifyAppStoreBodySchema = z.object({
   signedTransaction: z.string().min(1),
@@ -46,7 +47,11 @@ SubscriptionController.post(
     const parsed = AppStoreNotificationBodySchema.safeParse(req.body)
     if (parsed.success) {
       const useCase = new HandleAppStoreNotificationUseCase(new AppleNotificationVerifier(), new SubscriptionRepo())
-      await useCase.call(parsed.data.signedPayload)
+      try {
+        await useCase.call(parsed.data.signedPayload)
+      } catch (error) {
+        Logger.error(error)
+      }
     }
     res.status(200).send()
   })

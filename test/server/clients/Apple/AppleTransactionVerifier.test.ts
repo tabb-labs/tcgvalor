@@ -1,7 +1,18 @@
-jest.mock('@apple/app-store-server-library', () => ({
-  SignedDataVerifier: jest.fn().mockImplementation(() => ({ verifyAndDecodeTransaction: mockVerifyAndDecode })),
-  Environment: { PRODUCTION: 'PRODUCTION', SANDBOX: 'SANDBOX' },
-}))
+jest.mock('@apple/app-store-server-library', () => {
+  class VerificationException extends Error {
+    status: number
+    constructor(status: number) {
+      super()
+      this.status = status
+    }
+  }
+  return {
+    SignedDataVerifier: jest.fn().mockImplementation(() => ({ verifyAndDecodeTransaction: mockVerifyAndDecode })),
+    Environment: { PRODUCTION: 'PRODUCTION', SANDBOX: 'SANDBOX' },
+    VerificationException,
+    VerificationStatus: { INVALID_ENVIRONMENT: 4 },
+  }
+})
 
 jest.mock('../../../../src/server/env', () => ({
   ENV: {
@@ -15,6 +26,7 @@ jest.mock('../../../../src/server/env', () => ({
 }))
 
 import AppleTransactionVerifier from '../../../../src/server/clients/Apple/AppleTransactionVerifier'
+import { VerificationException, VerificationStatus } from '@apple/app-store-server-library'
 
 const mockVerifyAndDecode = jest.fn()
 
@@ -55,12 +67,28 @@ describe('AppleTransactionVerifier', () => {
       })
     })
 
-    it('returns null when the library throws (invalid signature, bad cert, etc.)', async () => {
+    it('falls back to sandbox and returns the payload when production throws INVALID_ENVIRONMENT', async () => {
+      mockVerifyAndDecode
+        .mockRejectedValueOnce(new VerificationException(VerificationStatus.INVALID_ENVIRONMENT))
+        .mockResolvedValueOnce({
+          originalTransactionId: 'txn_sandbox',
+          productId: 'com.tcgvalor.pro.monthly',
+          expiresDate: undefined,
+        })
+
+      const result = await verifier.verify('sandbox.jws.token')
+
+      expect(result).toEqual({
+        originalTransactionId: 'txn_sandbox',
+        productId: 'com.tcgvalor.pro.monthly',
+        expiresDate: undefined,
+      })
+    })
+
+    it('re-throws when the library throws a non-environment error (invalid signature, bad cert, etc.)', async () => {
       mockVerifyAndDecode.mockRejectedValue(new Error('Verification failed'))
 
-      const result = await verifier.verify('forged.jws.token')
-
-      expect(result).toBeNull()
+      await expect(verifier.verify('forged.jws.token')).rejects.toThrow('Verification failed')
     })
 
     it('returns null when originalTransactionId is missing', async () => {

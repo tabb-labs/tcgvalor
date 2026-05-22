@@ -18,6 +18,9 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       ADMIN_TOKEN: ${ADMIN_TOKEN}
       HONEY_BADGER: ${HONEY_BADGER}
+      APPLE_BUNDLE_ID: ${APPLE_BUNDLE_ID}
+      APPLE_APP_APPLE_ID: ${APPLE_APP_APPLE_ID}
+      APPLE_ROOT_CERTS_BASE64: ${APPLE_ROOT_CERTS_BASE64}
     depends_on:
       postgres:
         condition: service_healthy
