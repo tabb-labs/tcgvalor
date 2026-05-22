@@ -1,5 +1,5 @@
 import { NotificationTypeV2 } from '@apple/app-store-server-library'
-import SignedDataVerifierFactory from './SignedDataVerifierFactory'
+import FallbackSignedDataVerifier from './FallbackSignedDataVerifier'
 
 export type AppleNotificationPayload = {
   notificationType: NotificationTypeV2
@@ -12,10 +12,10 @@ export interface IAppleNotificationVerifier {
 }
 
 class AppleNotificationVerifier implements IAppleNotificationVerifier {
-  private readonly factory: SignedDataVerifierFactory
+  private readonly factory: FallbackSignedDataVerifier
 
   constructor() {
-    this.factory = new SignedDataVerifierFactory()
+    this.factory = new FallbackSignedDataVerifier()
   }
 
   verify = async (signedPayload: string): Promise<AppleNotificationPayload | null> => {

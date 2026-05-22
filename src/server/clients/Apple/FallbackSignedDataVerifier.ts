@@ -1,8 +1,13 @@
-import { SignedDataVerifier, Environment } from '@apple/app-store-server-library'
+import {
+  SignedDataVerifier,
+  Environment,
+  VerificationException,
+  VerificationStatus,
+} from '@apple/app-store-server-library'
 import { ENV } from '../../env'
 import Logger from '../../logger'
 
-class SignedDataVerifierFactory {
+class FallbackSignedDataVerifier {
   private readonly productionVerifier: SignedDataVerifier
   private readonly sandboxVerifier: SignedDataVerifier
 
@@ -21,15 +26,19 @@ class SignedDataVerifierFactory {
   verify = async <T>(decode: (verifier: SignedDataVerifier) => Promise<T | null>): Promise<T | null> => {
     try {
       return await decode(this.productionVerifier)
-    } catch {
-      try {
-        return await decode(this.sandboxVerifier)
-      } catch (error) {
-        Logger.error(error)
-        return null
+    } catch (error) {
+      if (!(error instanceof VerificationException) || error.status !== VerificationStatus.INVALID_ENVIRONMENT) {
+        throw error
       }
+    }
+
+    try {
+      return await decode(this.sandboxVerifier)
+    } catch (error) {
+      Logger.error(error)
+      return null
     }
   }
 }
 
-export default SignedDataVerifierFactory
+export default FallbackSignedDataVerifier

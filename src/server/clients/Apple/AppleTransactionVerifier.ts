@@ -1,4 +1,4 @@
-import SignedDataVerifierFactory from './SignedDataVerifierFactory'
+import FallbackSignedDataVerifier from './FallbackSignedDataVerifier'
 
 export type AppleTransactionPayload = {
   originalTransactionId: string
@@ -11,10 +11,10 @@ export interface IAppleTransactionVerifier {
 }
 
 class AppleTransactionVerifier implements IAppleTransactionVerifier {
-  private readonly factory: SignedDataVerifierFactory
+  private readonly factory: FallbackSignedDataVerifier
 
   constructor() {
-    this.factory = new SignedDataVerifierFactory()
+    this.factory = new FallbackSignedDataVerifier()
   }
 
   verify = async (jws: string): Promise<AppleTransactionPayload | null> => {
