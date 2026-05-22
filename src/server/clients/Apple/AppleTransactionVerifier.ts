@@ -1,5 +1,4 @@
-import { SignedDataVerifier, Environment } from '@apple/app-store-server-library'
-import { ENV } from '../../env'
+import SignedDataVerifierFactory from './SignedDataVerifierFactory'
 
 export type AppleTransactionPayload = {
   originalTransactionId: string
@@ -12,32 +11,19 @@ export interface IAppleTransactionVerifier {
 }
 
 class AppleTransactionVerifier implements IAppleTransactionVerifier {
-  private readonly verifier: SignedDataVerifier
+  private readonly factory: SignedDataVerifierFactory
 
   constructor() {
-    const rootCerts = ENV.APPLE.ROOT_CERTS_BASE64()
-      .split(',')
-      .filter(Boolean)
-      .map((b64) => Buffer.from(b64, 'base64'))
-
-    const env = ENV.ID === 'production' ? Environment.PRODUCTION : Environment.SANDBOX
-    const bundleId = ENV.APPLE.BUNDLE_ID()
-    const appAppleId = Number(ENV.APPLE.APP_APPLE_ID())
-
-    this.verifier = new SignedDataVerifier(rootCerts, true, env, bundleId, appAppleId)
+    this.factory = new SignedDataVerifierFactory()
   }
 
   verify = async (jws: string): Promise<AppleTransactionPayload | null> => {
-    try {
-      const decoded = await this.verifier.verifyAndDecodeTransaction(jws)
-      if (!decoded.originalTransactionId || !decoded.productId) return null
-      return {
-        originalTransactionId: decoded.originalTransactionId,
-        productId: decoded.productId,
-        expiresDate: decoded.expiresDate,
-      }
-    } catch {
-      return null
+    const decoded = await this.factory.verify((v) => v.verifyAndDecodeTransaction(jws))
+    if (!decoded?.originalTransactionId || !decoded?.productId) return null
+    return {
+      originalTransactionId: decoded.originalTransactionId,
+      productId: decoded.productId,
+      expiresDate: decoded.expiresDate,
     }
   }
 }
