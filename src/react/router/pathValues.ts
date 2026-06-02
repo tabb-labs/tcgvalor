@@ -23,4 +23,5 @@ export const PATH_VALUES = {
   series: '/series',
   developerNotes: '/developer-notes',
   privacyPolicy: '/privacy-policy',
+  termsOfUse: '/terms',
 }
