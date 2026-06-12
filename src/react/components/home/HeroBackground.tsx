@@ -8,7 +8,8 @@ const HeroFonts = createGlobalStyle`
 const PageBackground = styled.div`
   position: fixed;
   inset: 0;
-  background: #060710;
+  background: radial-gradient(circle at 15% 10%, rgba(232, 160, 20, 0.06), transparent),
+    radial-gradient(circle at 80% 70%, rgba(30, 60, 180, 0.05), transparent), #060710;
   z-index: -1;
 `
 

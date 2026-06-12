@@ -15,7 +15,7 @@ const HomePage = () => {
   }, [isLoggedIn])
 
   return (
-    <PageLayout>
+    <PageLayout fullHeight>
       <HeroBackground />
       <HeroCanvas>
         <HeroContent />
