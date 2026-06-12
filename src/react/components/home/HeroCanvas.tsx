@@ -38,6 +38,8 @@ const Canvas = styled.section`
   align-items: center;
   justify-content: center;
   position: relative;
+  flex: 1;
+  min-height: 0;
   padding: 9rem 1.5rem 5rem;
   box-sizing: border-box;
 
